@@ -1,0 +1,96 @@
+import {
+  View,
+  Text,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+} from "react-native";
+import React from "react";
+import { router } from "expo-router";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+
+type Props = {};
+
+const VerificationFace = (props: Props) => {
+  return (
+    <SafeAreaView className="bg-primary-600 flex-1 items-center justify-center w-full h-full">
+      <View className="bg-white border-2 rounded-t-3xl rounded-lg w-full h-full mt-6 space-y-4">
+        <ScrollView
+          className="p-6 flex-grow flex-col"
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
+        >
+          <View className="flex flex-row items-center justify-between w-full">
+            <Text className="font-bold text-primary-400 text-2xl flex-1">
+              Verifikasi wajah
+            </Text>
+            <TouchableOpacity>
+              <TouchableOpacity>
+                <Text className="text-primary-400 text-2xl font-bold">{` SKIP >`}</Text>
+              </TouchableOpacity>
+            </TouchableOpacity>
+          </View>
+          <View className="mt-2">
+            <Text className="text-base">Kami ingin kenal kamu lebih jauh</Text>
+          </View>
+          <View className="flex items-center justify-center">
+            <Image
+              source={require("@/assets/images/verification-face.png")}
+              className="mt-2 "
+              resizeMode="contain"
+            />
+          </View>
+          <View className="border-4 border-primary-400 p-4 rounded-lg w-auto mt-2">
+            <View className="flex flex-row items-center justify-center gap-x-3">
+              <MaterialCommunityIcons
+                name="lightbulb-on-outline"
+                size={30}
+                color="#00027d"
+              />
+              <Text className="text-sm flex-1">
+                Pastiin kamu ada di tempat terang
+              </Text>
+            </View>
+
+            <View className="flex flex-row items-center justify-center gap-x-3 mt-2">
+              <FontAwesome6 name="face-grin" size={30} color="#00027d" />
+              <Text className="text-sm flex-1">
+                Lepas aksesori yang dipakai di muka seperti masker, topi, atau
+                kacamata
+              </Text>
+            </View>
+
+            <View className="flex flex-row items-center justify-center gap-x-3 mt-2">
+              <MaterialIcons name="verified" size={30} color="#00027d" />
+              <Text className="text-sm flex-1">
+                Ikutin panduan yang ada dari arahan suara ya!
+              </Text>
+            </View>
+          </View>
+
+          <View className="flex flex-col mt-8 gap-y-4">
+            <TouchableOpacity
+              onPress={() => {
+                router.push("/camera-face");
+              }}
+              className="bg-primary-400 items-center py-4 px-4 rounded-3xl"
+            >
+              <Text className="text-white font-bold text-2xl text-center">
+                Lanjut
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity className="bg-primary-400 items-center py-4 px-4 rounded-3xl">
+              <Text className="text-white font-bold text-2xl text-center">
+                Skip
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </View>
+    </SafeAreaView>
+  );
+};
+
+export default VerificationFace;
