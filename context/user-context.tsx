@@ -7,10 +7,10 @@ interface User {
   pin? : string;
   ktp_photo?: string;
   ktp_data?: {
-    originalWidth? : number; // Posisi x overlay
-    originalHeight? : number; // Posisi y overlay
-    width?: number; // Lebar overlay
-    height?: number; // Tinggi overlay
+    originalWidth? : number;
+    originalHeight? : number;
+    width?: number;
+    height?: number; 
   };
 }
 

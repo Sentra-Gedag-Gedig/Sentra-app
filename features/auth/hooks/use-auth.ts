@@ -7,16 +7,22 @@ import {
   RegisterResponse,
 } from "../types/auth";
 import { login, register } from "../services/auth";
+import * as SecureStore from "expo-secure-store";
 import { setAuthSession } from "@/lib/session";
+import { useUser } from "@/context/user-context";
 
 export const useLogin = () => {
   const queryClient = useQueryClient();
   const router = useRouter();
-
+  const { setUser } = useUser();
   return useMutation<LoginResponse, Error, LoginRequest>({
     mutationFn: (data: LoginRequest) => login(data),
     onSuccess: async (res) => {
       await setAuthSession(res.accessToken, res.expiresInHour);
+      const savedName = await SecureStore.getItemAsync("user_name");
+      setUser({
+        name: savedName ?? undefined,
+      });
       router.replace("/(e-kyc)/verification-ktp");
       queryClient.invalidateQueries({ queryKey: ["auth"] });
     },

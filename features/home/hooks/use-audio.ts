@@ -1,12 +1,8 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Audio } from "expo-av";
-import {
-  playRecordingAsync,
-  startRecordingAsync,
-  stopRecordingAsync,
-} from "../actions/audio";
+import * as FileSystem from "expo-file-system";
 
-export const useAudioRecorder = () => {
+export function useVoiceRecorder() {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [recordingUri, setRecordingUri] = useState<string | null>(null);
@@ -14,80 +10,184 @@ export const useAudioRecorder = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [duration, setDuration] = useState(0);
-  const [interval, setIntervalId] = useState<NodeJS.Timeout | null>(null);
+  const [showRecorderUI, setShowRecorderUI] = useState(false);
+  const [isSent, setIsSent] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     return () => {
-      if (recording) recording.stopAndUnloadAsync();
-      if (sound) sound.unloadAsync();
-      if (interval) clearInterval(interval);
+      if (recording) {
+        recording.stopAndUnloadAsync();
+      }
+      if (sound) {
+        sound.unloadAsync();
+      }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
     };
   }, []);
 
   const startRecording = async () => {
     try {
-      setIsRecording(true);
-      setDuration(0);
-      const { interval } = await startRecordingAsync(
-        () => setDuration((prev) => prev + 1),
-        setRecording
+      const permissionResponse = await Audio.requestPermissionsAsync();
+      if (permissionResponse.status !== "granted") {
+        alert("Permission to access microphone is required!");
+        return;
+      }
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
       );
-      setIntervalId(interval);
-    } catch (err) {
-      console.error(err);
-      setIsRecording(false);
+
+      setRecording(recording);
+      setIsRecording(true);
+      setIsPaused(false);
+      setDuration(0);
+      setShowRecorderUI(true);
+
+      intervalRef.current = setInterval(() => {
+        setDuration((prev) => prev + 1);
+      }, 1000);
+    } catch (error) {
+      console.error("Failed to start recording:", error);
     }
   };
 
   const stopRecording = async () => {
     if (!recording) return;
-    if (interval) clearInterval(interval);
-    const uri = await stopRecordingAsync(recording);
-    setRecording(null);
-    setRecordingUri(uri);
-    setIsRecording(false);
+
+    try {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      setRecordingUri(uri);
+      setRecording(null);
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+      });
+    } catch (error) {
+      console.error("Failed to stop recording:", error);
+    }
   };
 
-  const play = async () => {
-    if (!recordingUri) return;
+  const onPlaybackStatusUpdate = (status: any) => {
+    if (!status.isLoaded) return;
 
-    if (sound && isPlaying) {
-      await sound.pauseAsync();
+    setIsPlaying(status.isPlaying);
+    setIsPaused(
+      !status.isPlaying &&
+        status.positionMillis > 0 &&
+        status.durationMillis > status.positionMillis
+    );
+
+    if (status.didJustFinish) {
       setIsPlaying(false);
-      setIsPaused(true);
-      return;
-    }
-
-    if (sound && isPaused) {
-      await sound.playAsync();
-      setIsPlaying(true);
       setIsPaused(false);
+    }
+  };
+
+  const playSound = async () => {
+    if (isPlaying) {
+      if (sound) {
+        await sound.pauseAsync();
+        setIsPlaying(false);
+        setIsPaused(true);
+      }
       return;
     }
 
-    if (sound) await sound.unloadAsync();
+    try {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
 
-    const newSound = await playRecordingAsync(recordingUri, (status) => {
-      if (status.didJustFinish) {
-        setIsPlaying(false);
+      if (sound) {
+        await sound.unloadAsync();
+        setSound(null);
+      }
+
+      if (recordingUri) {
+        const { sound: newSound } = await Audio.Sound.createAsync(
+          { uri: recordingUri },
+          { shouldPlay: true },
+          onPlaybackStatusUpdate
+        );
+
+        setSound(newSound);
+        setIsPlaying(true);
         setIsPaused(false);
       }
-    });
-
-    setSound(newSound);
-    setIsPlaying(true);
-    setIsPaused(false);
+    } catch (error) {
+      console.error("Failed to play sound:", error);
+    }
   };
 
-  const discard = () => {
-    if (interval) clearInterval(interval);
-    if (sound) sound.unloadAsync();
-    setRecording(null);
+  const discardRecording = () => {
+    if (recording) {
+      stopRecording();
+    }
+    if (sound) {
+      sound.unloadAsync();
+      setSound(null);
+    }
+    if (recordingUri) {
+      FileSystem.deleteAsync(recordingUri, { idempotent: true }).catch((err) =>
+        console.warn("Failed to delete file:", err)
+      );
+    }
     setRecordingUri(null);
-    setIsPlaying(false);
-    setIsPaused(false);
-    setDuration(0);
     setIsRecording(false);
+    setIsPaused(false);
+    setIsSent(false);
+    setIsPlaying(false);
+    setDuration(0);
+    setShowRecorderUI(false);
+  };
+
+  const sendRecording = () => {
+    if (recording) {
+      stopRecording();
+    }
+
+    console.log("Recording URI:", recordingUri);
+
+    setIsRecording(false);
+    setShowRecorderUI(false);
+    if (recordingUri) {
+      setIsSent(true);
+    }
+  };
+
+  const handleIconPress = () => {
+    if (recordingUri && showRecorderUI) {
+      discardRecording();
+    } else {
+      if (!isRecording) {
+        startRecording();
+      } else {
+        stopRecording();
+      }
+    }
+  };
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   return {
@@ -96,9 +196,15 @@ export const useAudioRecorder = () => {
     isPlaying,
     isPaused,
     duration,
+    showRecorderUI,
+    isSent,
     startRecording,
     stopRecording,
-    play,
-    discard,
+    playSound,
+    discardRecording,
+    sendRecording,
+    handleIconPress,
+    formatDuration,
+    setShowRecorderUI,
   };
-};
+}
