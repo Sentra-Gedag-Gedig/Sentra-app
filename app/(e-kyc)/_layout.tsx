@@ -30,10 +30,6 @@ export default function EKYCLayout() {
         name="camera-face"
         options={{ headerShown: true, title: "" }}
       />
-      <Stack.Screen
-        name="camera-face2"
-        options={{ headerShown: true, title: "" }}
-      />
     </Stack>
   );
 }

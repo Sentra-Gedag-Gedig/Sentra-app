@@ -3,9 +3,7 @@ import { View, Text, TouchableOpacity, Image, Platform } from "react-native";
 import { Ionicons, FontAwesome5, FontAwesome } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Audio } from "expo-av";
-import { useAudioRecorder } from "@/features/home/hooks/use-audio";
 import * as FileSystem from "expo-file-system";
-
 
 const dialPad = [
   ["clipboard", "Hari ini", "trash-can-outline", "check"],
@@ -172,6 +170,7 @@ const MicInputRow = ({ inputValue }: { inputValue: string }) => {
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [interval, setIntervalId] = useState<NodeJS.Timeout | null>(null);
   const [showRecorderUI, setShowRecorderUI] = useState(false);
+  const [isSent, setIsSent] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -322,6 +321,7 @@ const MicInputRow = ({ inputValue }: { inputValue: string }) => {
     setRecordingUri(null);
     setIsRecording(false);
     setIsPaused(false);
+    setIsSent(false);
     setIsPlaying(false);
     setRecordingDuration(0);
     setShowRecorderUI(false);
@@ -336,8 +336,19 @@ const MicInputRow = ({ inputValue }: { inputValue: string }) => {
 
     setIsRecording(false);
     setShowRecorderUI(false);
-
+    if (recordingUri) {
+      setIsSent(true);
+    }
     // setRecordingUri(null);
+  }
+  function handleIconPress() {
+    if (recordingUri && showRecorderUI) {
+      // Hapus file rekaman
+      discardRecording();
+    } else {
+      // Mulai/stop recording
+      handleMicPress();
+    }
   }
 
   function formatDuration(seconds: number) {
@@ -352,9 +363,13 @@ const MicInputRow = ({ inputValue }: { inputValue: string }) => {
         <>
           <TouchableOpacity
             className="flex-1 mx-1 rounded-3xl py-2 items-center justify-center bg-indigo-100"
-            onPress={handleMicPress}
+            onPress={handleIconPress}
           >
-            <Ionicons name="mic" size={24} color="#00027d" />
+            {recordingUri ? (
+              <Ionicons name="volume-high" size={24} color="#00027d" />
+            ) : (
+              <Ionicons name="mic" size={24} color="#00027d" />
+            )}
           </TouchableOpacity>
           <View className="flex-[3] mx-1 bg-white p-3 rounded-xl flex-row items-center justify-between">
             <Text className="flex-1 text-gray-500 text-sm font-bold">
@@ -441,23 +456,3 @@ const VoiceRecorderUI = ({
 };
 
 export default Dialpad;
-{
-  /* <>
-<TouchableOpacity
-  className="flex-1 mx-1 rounded-3xl py-2 items-center justify-center bg-indigo-100"
-  onPress={handleMicPress}
->
-  <Ionicons name="mic" size={24} color="#00027d" />
-</TouchableOpacity>
-<View className="flex-[3] mx-1 bg-white p-3 rounded-xl flex-row items-center justify-between">
-  <Text className="flex-1 text-gray-500 text-sm font-bold">
-    Catatan
-  </Text>
-  <View className="flex-row items-center ml-2">
-    <Text className="text-gray-500 text-xs mr-1">
-      dalam Rupiah(RP)
-    </Text>
-  </View>
-</View>
-</> */
-}

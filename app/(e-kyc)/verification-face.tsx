@@ -10,7 +10,7 @@ import React from "react";
 import { router } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 type Props = {};
 
@@ -27,7 +27,7 @@ const VerificationFace = (props: Props) => {
               Verifikasi wajah
             </Text>
             <TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => router.replace("/(main)/home")}>
                 <Text className="text-primary-400 text-2xl font-bold">{` SKIP >`}</Text>
               </TouchableOpacity>
             </TouchableOpacity>

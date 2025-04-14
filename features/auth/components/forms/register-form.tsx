@@ -16,6 +16,7 @@ import { useRegister } from "../../hooks/use-auth";
 import PasswordInput from "@/components/PasswordInput";
 import { useUser } from "@/context/user-context";
 import { usePhoneVerification } from "@/features/verification/hooks/use-verification";
+import * as SecureStore from "expo-secure-store";
 
 const RegisterForm = () => {
   const [checked, setChecked] = useState(false);
@@ -56,6 +57,7 @@ const RegisterForm = () => {
     };
     setUser(payload);
     console.log("Payload:", payload);
+    await SecureStore.setItemAsync("user_name", payload.name!);
 
     await verification({ phone_number: payload.phone_number });
     await register(payload);

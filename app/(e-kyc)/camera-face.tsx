@@ -9,26 +9,79 @@ import {
   Image,
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import * as FaceDetector from "expo-face-detector";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Speech from "expo-speech";
+import { useRouter } from "expo-router";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 const CIRCLE_SIZE = screenWidth * 0.75;
 
+const WEBSOCKET_URL = "wss://3.107.213.82"
+
 const FaceRegistrationCamera = () => {
   const [permission, requestPermission] = useCameraPermissions();
-  const [faceDetected, setFaceDetected] = useState(false);
-  const [faceAligned, setFaceAligned] = useState(false);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [mainInstruction, setMainInstruction] = useState(
-    "Ikutin arahan suara untuk letakkan wajah anda tepat di Lingkaran!"
-  );
+  const [wsStatus, setWsStatus] = useState("Disconnected");
   const [directionText, setDirectionText] = useState("");
-  const [detectionInterval, setDetectionInterval] =
-    useState<NodeJS.Timeout | null>(null);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const router = useRouter();
+
   const cameraRef = useRef<CameraView>(null);
+  const ws = useRef<WebSocket | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  console.log("WebSocket URL:", WEBSOCKET_URL);
+
+  useEffect(() => {
+    ws.current = new WebSocket(WEBSOCKET_URL);
+    ws.current.onopen = () => {
+      console.log("WebSocket connected");
+      setWsStatus("Connected");
+      ws.current?.send(
+        JSON.stringify({ type: "INIT", message: "Client connected" })
+      );
+    };
+
+    ws.current.onmessage = (event) => {
+      console.log("Message received:", event.data);
+      try {
+        const message = JSON.parse(event.data);
+        if (message.type === "face_aligned") {
+          Speech.speak("Wajah terdeteksi dengan benar", {
+            language: "id-ID",
+            pitch: 1,
+            rate: 1,
+            onDone: () => {
+              router.push("/(auth)/login");
+            },
+          });
+        } else if (message.type === "direction") {
+          if (message.text && message.text !== directionText) {
+            setDirectionText(message.text);
+            Speech.speak(message.text, {
+              language: "id-ID",
+              pitch: 1,
+              rate: 1,
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Parsing error:", error);
+      }
+    };
+
+    ws.current.onerror = (error) => {
+      console.error("WebSocket error:", error);
+      setWsStatus("Error");
+    };
+
+    ws.current.onclose = () => {
+      console.log("WebSocket closed");
+      setWsStatus("Disconnected");
+    };
+
+    return () => {
+      ws.current?.close();
+    };
+  }, [router]);
 
   useEffect(() => {
     if (!permission?.granted) {
@@ -37,196 +90,60 @@ const FaceRegistrationCamera = () => {
   }, [permission]);
 
   useEffect(() => {
-    if (permission?.granted && !detectionInterval) {
-      const interval = setInterval(detectFace, 5000);
-      setDetectionInterval(interval);
-
-      return () => {
-        if (interval) clearInterval(interval);
-      };
+    if (permission?.granted && wsStatus === "Connected") {
+      intervalRef.current = setInterval(captureAndSend, 5000);
     }
-  }, [permission?.granted]);
-
-  useEffect(() => {
     return () => {
-      if (detectionInterval) clearInterval(detectionInterval);
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [detectionInterval]);
+  }, [permission?.granted, wsStatus]);
 
-  const detectFace = async () => {
-    if (analyzing || capturedImage || !cameraRef.current) return;
+  const captureAndSend = async () => {
+    if (!cameraRef.current || ws.current?.readyState !== WebSocket.OPEN) return;
 
     try {
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.5,
         skipProcessing: true,
+        base64: true,
       });
 
-      if (!photo) {
-        return;
-      }
+      if (!photo || !photo.base64) return;
+      console.log("Photo captured:", photo.uri);
 
-      const options = {
-        mode: FaceDetector.FaceDetectorMode.fast,
-        detectLandmarks: FaceDetector.FaceDetectorLandmarks.none,
-        runClassifications: FaceDetector.FaceDetectorClassifications.none,
+      setCapturedImage(photo.uri);
+
+      const payload = {
+        type: "face_detection",
+        data: {
+          image: `data:image/jpg;base64,${photo.base64}`,
+          timestamp: Date.now(),
+        },
       };
 
-      const result = await FaceDetector.detectFacesAsync(photo.uri, options);
-
-      if (result.faces.length === 0) {
-        setFaceDetected(false);
-        setFaceAligned(false);
-        setDirectionText("");
-        return;
-      }
-
-      const face = result.faces[0];
-      processFacePosition(face);
+      ws.current.send(JSON.stringify(payload));
     } catch (error) {
-      console.error("Face detection error:", error);
-    }
-  };
-
-  const processFacePosition = (face: any) => {
-    const faceWidth = face.bounds.size.width;
-    const faceHeight = face.bounds.size.height;
-    const faceCenterX = face.bounds.origin.x + faceWidth / 2;
-    const faceCenterY = face.bounds.origin.y + faceHeight / 2;
-
-    const circleCenterX = screenWidth / 2;
-    const circleCenterY = screenHeight * 0.4;
-
-    const distance = Math.sqrt(
-      Math.pow(faceCenterX - circleCenterX, 2) +
-        Math.pow(faceCenterY - circleCenterY, 2)
-    );
-
-    const inCircle = distance < (CIRCLE_SIZE / 2) * 0.75;
-    const goodSize =
-      faceWidth > CIRCLE_SIZE * 0.5 && faceWidth < CIRCLE_SIZE * 0.85;
-
-    setFaceDetected(true);
-
-    const speak = async (text: string) => {
-      const isSpeaking = await Speech.isSpeakingAsync();
-      if (isSpeaking) await Speech.stop();
-      await Speech.speak(text, {
-        language: "id-ID",
-        pitch: 1,
-        rate: 1,
-      });
-    };
-
-    if (!inCircle) {
-      const xDiff = faceCenterX - circleCenterX;
-      const yDiff = faceCenterY - circleCenterY;
-
-      let newDirection = "";
-
-      if (Math.abs(xDiff) > Math.abs(yDiff)) {
-        newDirection =
-          xDiff > 0
-            ? "Arahkan kepala anda ke Kiri"
-            : "Arahkan kepala anda ke Kanan";
-      } else {
-        newDirection =
-          yDiff > 0
-            ? "Arahkan kepala anda ke Atas"
-            : "Arahkan kepala anda ke Bawah";
-      }
-
-      if (newDirection !== directionText) {
-        setDirectionText(newDirection);
-        speak(newDirection);
-      }
-    } else if (!goodSize) {
-      let newDirection =
-        faceWidth < CIRCLE_SIZE * 0.5
-          ? "Dekatkan wajah anda"
-          : "Jauhkan wajah anda";
-
-      if (newDirection !== directionText) {
-        setDirectionText(newDirection);
-        speak(newDirection);
-      }
-    } else {
-      const newDirection = "Wajah terdeteksi dengan baik";
-      if (newDirection !== directionText) {
-        setDirectionText(newDirection);
-        speak(newDirection);
-      }
-      setFaceAligned(true);
-    }
-  };
-
-  const takePicture = async () => {
-    if (cameraRef.current && !capturedImage) {
-      try {
-        const photo = await cameraRef.current.takePictureAsync({
-          quality: 0.8,
-          skipProcessing: true,
-        });
-        if (!photo) {
-          return;
-        }
-
-        setCapturedImage(photo.uri);
-        setDirectionText("Wajah teregistrasi!");
-        setAnalyzing(false);
-
-        console.log("Photo taken:", photo.uri);
-      } catch (error) {
-        console.error("Failed to take picture:", error);
-        setAnalyzing(false);
-        setDirectionText("Gagal mengambil gambar");
-
-        const interval = setInterval(detectFace, 5000);
-        setDetectionInterval(interval);
-      }
+      console.error("Error capturing image:", error);
     }
   };
 
   const renderCameraContent = () => {
-    if (capturedImage) {
-      return (
-        <View style={styles.capturedContainer}>
-          <Image source={{ uri: capturedImage }} style={styles.capturedImage} />
-          <View style={styles.capturedOverlay}>
-            <View style={styles.checkmarkContainer}>
-              <Ionicons name="checkmark-circle" size={60} color="#4CD964" />
-            </View>
-          </View>
-        </View>
-      );
-    }
-
     return (
       <CameraView ref={cameraRef} style={styles.camera} facing="front">
         <View style={styles.instructionContainer}>
-          <Text style={styles.instructionText}>{mainInstruction}</Text>
+          <Text style={styles.instructionText}>
+            Arahkan wajah anda ke lingkaran sesuai petunjuk dari server!
+          </Text>
         </View>
 
         <View style={styles.circleContainer}>
-          <View
-            style={[
-              styles.circle,
-              faceAligned
-                ? styles.circleAligned
-                : faceDetected
-                  ? styles.circleDetected
-                  : {},
-            ]}
-          />
+          <View style={styles.circle} />
         </View>
 
         <View style={styles.directionContainer}>
           <Text style={styles.directionText}>{directionText}</Text>
-          {analyzing && (
-            <View style={styles.analyzingContainer}>
-              <ActivityIndicator size="small" color="white" />
-              <Text style={styles.analyzingText}>Analyzing...</Text>
-            </View>
+          {wsStatus !== "Connected" && (
+            <ActivityIndicator size="small" color="white" />
           )}
         </View>
       </CameraView>
@@ -249,7 +166,16 @@ const FaceRegistrationCamera = () => {
     );
   }
 
-  return <View style={styles.container}>{renderCameraContent()}</View>;
+  return (
+    <View style={styles.container}>
+      {renderCameraContent()}
+      {capturedImage && (
+        <View style={styles.previewContainer}>
+          <Image source={{ uri: capturedImage }} style={styles.previewImage} />
+        </View>
+      )}
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -259,15 +185,6 @@ const styles = StyleSheet.create({
   },
   camera: {
     flex: 1,
-  },
-  header: {
-    paddingTop: 40,
-    paddingHorizontal: 20,
-    paddingBottom: 10,
-    backgroundColor: "#000264",
-  },
-  backButton: {
-    padding: 5,
   },
   instructionContainer: {
     paddingHorizontal: 20,
@@ -293,13 +210,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "rgba(255, 255, 255, 0.7)",
     backgroundColor: "transparent",
-    overflow: "hidden",
-  },
-  circleDetected: {
-    borderColor: "#FFCC00",
-  },
-  circleAligned: {
-    borderColor: "#4CD964",
   },
   directionContainer: {
     paddingVertical: 20,
@@ -337,38 +247,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  capturedContainer: {
-    flex: 1,
-    position: "relative",
+  previewContainer: {
+    position: "absolute",
+    top: 20,
+    right: 20,
+    width: 100,
+    height: 150,
+    borderWidth: 1,
+    borderColor: "#fff",
+    backgroundColor: "#000",
   },
-  capturedImage: {
-    flex: 1,
+  previewImage: {
     width: "100%",
     height: "100%",
-  },
-  capturedOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  checkmarkContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  analyzingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 10,
-  },
-  analyzingText: {
-    color: "white",
-    fontSize: 14,
-    marginLeft: 8,
   },
 });
 
