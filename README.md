@@ -1,5 +1,5 @@
 # 💸 Sentra - "Meraba Finansial, Meraih Impian"
-
+![alt text](![Pitchdeck Sentra Hackathon Find IT 2025](https://github.com/user-attachments/assets/9adc8c65-3e80-41db-8af1-7f62e0218439?raw=true)
 Sentra adalah solusi finansial komprehensif yang dirancang khusus untuk pengguna tunanetra dan mereka yang memiliki penglihatan rendah. Aplikasi ini menggabungkan desain inklusif dengan alat manajemen keuangan yang canggih untuk memberikan kemandirian dan aksesibilitas yang lebih besar.
 
 ### Nama Tim: Gedag Gedig
