@@ -1,165 +1,172 @@
 # 💸 Sentra - "Meraba Finansial, Meraih Impian"
 
-Sentra is a comprehensive financial solution designed specifically for visually impaired users and those with low vision. The app combines inclusive design with powerful financial management tools to provide greater independence and accessibility.
+Sentra adalah solusi finansial komprehensif yang dirancang khusus untuk pengguna tunanetra dan mereka yang memiliki penglihatan rendah. Aplikasi ini menggabungkan desain inklusif dengan alat manajemen keuangan yang canggih untuk memberikan kemandirian dan aksesibilitas yang lebih besar.
 
-## 🔍 Overview
+### Nama Tim: Gedag Gedig
 
-Sentra aims to bridge the gap in financial services for visually impaired individuals through an inclusive mobile application that offers:
+#### Anggota:
+- Richard (virgobulan05@student.ub.ac.id)
+- Jason Surya Wijaya (jasonsurya17@student.ub.ac.id)
+- Kadek Nandana Tyo Nayotama (nandanatyon@student.ub.ac.id)
 
-- **Accessible Banking:** Intuitive interface designed with screen reader support
-- **Currency Detection:** Real-time identification of Indonesian Rupiah banknotes
-- **Financial Management:** Budget tracking, expense categorization, and financial reporting
-- **Financial Literacy:** Access to curated financial news with text-to-speech capabilities
-- **Secure Authentication:** Face recognition and biometric login options
+## 🔍 Ringkasan
 
-## ✨ Features
+Sentra bertujuan untuk menjembatani kesenjangan dalam layanan keuangan bagi individu tunanetra melalui aplikasi mobile inklusif yang menawarkan:
 
-### 🔐 Authentication & Security
+- **Perbankan yang Dapat Diakses:** Antarmuka intuitif yang dirancang dengan dukungan pembaca layar
+- **Deteksi Mata Uang:** Identifikasi real-time uang kertas Rupiah Indonesia
+- **Manajemen Keuangan:** Pelacakan anggaran, kategorisasi pengeluaran, dan pelaporan keuangan
+- **Literasi Keuangan:** Akses ke berita keuangan terkurasi dengan kemampuan text-to-speech
+- **Otentikasi Aman:** Pengenalan wajah dan opsi login biometrik
 
-- Phone number and email-based registration
-- Biometric authentication (fingerprint)
-- Face verification for enhanced security
-- PIN creation for secure access
+## ✨ Fitur
+
+### 🔐 Otentikasi & Keamanan
+
+- Pendaftaran berbasis nomor telepon dan email
+- Otentikasi biometrik (sidik jari)
+- Verifikasi wajah untuk keamanan yang lebih baik
+- Pembuatan PIN untuk akses aman
 
 ### 📝 E-KYC (Electronic Know Your Customer)
 
-- ID card (KTP) verification system
-- Facial recognition verification
-- Secure identity confirmation process
+- Sistem verifikasi kartu identitas (KTP)
+- Verifikasi pengenalan wajah
+- Proses konfirmasi identitas yang aman
 
-### 📊 Home & Financial Dashboard
+### 📊 Beranda & Dashboard Keuangan
 
-- Transaction history and categorization
-- Income and expense tracking
-- Budget progress visualization
-- Date range filtering for financial data
+- Riwayat dan kategorisasi transaksi
+- Pelacakan pendapatan dan pengeluaran
+- Visualisasi progres anggaran
+- Pemfilteran data keuangan berdasarkan rentang tanggal
 
-### 💵 Currency Detection
+### 💵 Deteksi Mata Uang
 
-- Indonesian Rupiah banknote recognition
-- Audio feedback for identified currency
-- Flash and camera settings for various environments
+- Pengenalan uang kertas Rupiah Indonesia
+- Umpan balik audio untuk mata uang yang teridentifikasi
+- Pengaturan flash dan kamera untuk berbagai lingkungan
 
-### 📚 Financial Literacy
+### 📚 Literasi Keuangan
 
-- Curated financial news and articles
-- Text-to-speech functionality
-- Reading mode with text highlighting
-- Category-based content filtering
+- Berita dan artikel keuangan terkurasi
+- Fungsionalitas text-to-speech
+- Mode membaca dengan sorotan teks
+- Pemfilteran konten berdasarkan kategori
 
-### 👤 Profile Management
+### 👤 Manajemen Profil
 
-- User information editing
-- Notification settings
-- Security options
-- Account preferences
+- Pengeditan informasi pengguna
+- Pengaturan notifikasi
+- Opsi keamanan
+- Preferensi akun
 
-### 📱 QR Code Payment
+### 📱 Pembayaran Kode QR
 
-- QR code scanning for payments
-- Generate personal QR code for receiving payments
-- Transaction verification via PIN
+- Pemindaian kode QR untuk pembayaran
+- Menghasilkan kode QR pribadi untuk menerima pembayaran
+- Verifikasi transaksi melalui PIN
 
-## 🛠️ Technology Stack
+## 🛠️ Teknologi yang Digunakan
 
-- **Frontend:** React Native with Expo
-- **UI Framework:** Native styling with TailwindCSS (NativeWind)
+- **Frontend:** React Native dengan Expo
+- **UI Framework:** Native styling dengan TailwindCSS (NativeWind)
 - **State Management:** React Query
-- **Authentication:** Secure Store & JWT Tokens
-- **Forms:** React Hook Form with Zod validation
-- **Accessibility:** React Native Accessibility APIs
-- **Computer Vision:** (For currency detection and KTP verification)
-- **Biometrics:** Expo Local Authentication
+- **Otentikasi:** Secure Store & JWT Tokens
+- **Formulir:** React Hook Form dengan validasi Zod
+- **Aksesibilitas:** React Native Accessibility APIs
+- **Computer Vision:** (Untuk deteksi mata uang dan verifikasi KTP)
+- **Biometrik:** Expo Local Authentication
 
-## 📁 Project Structure
+## 📁 Struktur Proyek
 
 ```
 sentra/
-├── app/                  # Main application screens and routes
-│   ├── (auth)/           # Authentication screens
-│   ├── (e-kyc)/          # KYC verification screens
-│   ├── (main)/           # Main app screens
-│   ├── (sentra-pay)/     # Payment screens
-│   └── qrCode/           # QR code functionality
-├── assets/               # Images, fonts, and static resources
-├── components/           # Reusable UI components
-├── constants/            # Application constants
-├── context/              # React Context providers
-├── features/             # Feature-based modules
-│   ├── auth/             # Authentication logic
-│   ├── deteksi-uang/     # Currency detection
-│   ├── e-kyc/            # KYC verification
-│   ├── home/             # Dashboard functionality
-│   ├── literasi/         # Financial literacy
-│   ├── profiles/         # User profile management
-│   ├── qr/               # QR code components
-│   └── verification/     # Verification processes
+├── app/                  # Layar dan rute aplikasi utama
+│   ├── (auth)/           # Layar otentikasi
+│   ├── (e-kyc)/          # Layar verifikasi KYC
+│   ├── (main)/           # Layar aplikasi utama
+│   ├── (sentra-pay)/     # Layar pembayaran
+│   └── qrCode/           # Fungsionalitas kode QR
+├── assets/               # Gambar, font, dan sumber daya statis
+├── components/           # Komponen UI yang dapat digunakan kembali
+├── constants/            # Konstanta aplikasi
+├── context/              # Penyedia React Context
+├── features/             # Modul berbasis fitur
+│   ├── auth/             # Logika otentikasi
+│   ├── deteksi-uang/     # Deteksi mata uang
+│   ├── e-kyc/            # Verifikasi KYC
+│   ├── home/             # Fungsionalitas dashboard
+│   ├── literasi/         # Literasi keuangan
+│   ├── profiles/         # Manajemen profil pengguna
+│   ├── qr/               # Komponen kode QR
+│   └── verification/     # Proses verifikasi
 ├── hooks/                # Custom React hooks
-└── lib/                  # Utility functions and helpers
+└── lib/                  # Fungsi utilitas dan helper
 ```
 
-## 🚀 Getting Started
+## 🚀 Memulai
 
-### 📋 Prerequisites
+### 📋 Prasyarat
 
-- Node.js (v16 or higher)
-- Yarn or npm
+- Node.js (v16 atau lebih tinggi)
+- Yarn atau npm
 - Expo CLI
-- Android Studio (for Android development)
-- Xcode (for iOS development, Mac only)
+- Android Studio (untuk pengembangan Android)
+- Xcode (untuk pengembangan iOS, hanya Mac)
 
-### ⚙️ Installation
+### ⚙️ Instalasi
 
-1. Clone the repository:
+1. Clone repositori:
 
    ```bash
    git clone https://github.com/yourusername/sentra.git
    cd sentra
    ```
 
-2. Install dependencies:
+2. Instal dependensi:
 
    ```bash
    yarn install
-   # or
+   # atau
    npm install
    ```
 
-3. Start the development server:
+3. Mulai server pengembangan:
 
    ```bash
    npx expo start
    ```
 
-4. Run on a device or emulator:
-   - Press `a` for Android
-   - Press `i` for iOS (Mac only)
-   - Scan QR code with Expo Go app for physical devices
+4. Jalankan pada perangkat atau emulator:
+   - Tekan `a` untuk Android
+   - Tekan `i` untuk iOS (hanya Mac)
+   - Pindai kode QR dengan aplikasi Expo Go untuk perangkat fisik
 
-## ♿ Accessibility Features
+## ♿ Fitur Aksesibilitas
 
-Sentra is designed with accessibility as a core principle:
+Sentra dirancang dengan aksesibilitas sebagai prinsip utama:
 
-- **Screen Reader Support:** Full compatibility with TalkBack (Android) and VoiceOver (iOS)
-- **High Contrast Modes:** Enhanced visibility options
-- **Audio Feedback:** Voice guidance throughout the application
-- **Customizable Text Size:** Adjustable text for low vision users
-- **Simple Navigation:** Intuitive layout with minimal cognitive load
+- **Dukungan Pembaca Layar:** Kompatibilitas penuh dengan TalkBack (Android) dan VoiceOver (iOS)
+- **Mode Kontras Tinggi:** Opsi visibilitas yang ditingkatkan
+- **Umpan Balik Audio:** Panduan suara di seluruh aplikasi
+- **Ukuran Teks yang Dapat Disesuaikan:** Teks yang dapat disesuaikan untuk pengguna dengan penglihatan rendah
+- **Navigasi Sederhana:** Tata letak intuitif dengan beban kognitif minimal
 
-## 🤝 Contributing
+## 🤝 Kontribusi
 
-We welcome contributions to make Sentra even more accessible and functional for visually impaired users. Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+Kami menyambut kontribusi untuk membuat Sentra lebih mudah diakses dan fungsional bagi pengguna tunanetra. Silakan lihat [CONTRIBUTING.md](CONTRIBUTING.md) kami untuk detail tentang kode etik kami dan proses untuk mengirimkan permintaan pull.
 
-## 📄 License
+## 📄 Lisensi
 
-This project is licensed under the [MIT License](LICENSE).
+Proyek ini dilisensikan di bawah [Lisensi MIT](LICENSE).
 
-## 👏 Acknowledgements
+## 👏 Ucapan Terima Kasih
 
-- Special thanks to all contributors and organizations supporting financial inclusion for visually impaired individuals
-- Icons provided by Expo Vector Icons
-- Accessibility testing partners and visually impaired beta testers who provided invaluable feedback
+- Terima kasih khusus kepada semua kontributor dan organisasi yang mendukung inklusi keuangan untuk individu tunanetra
+- Ikon disediakan oleh Expo Vector Icons
+- Mitra pengujian aksesibilitas dan penguji beta tunanetra yang memberikan umpan balik yang sangat berharga
 
 ---
 
-Sentra - Financial independence for everyone. 🌟
+Sentra - Kemandirian finansial untuk semua. 🌟
