@@ -28,13 +28,13 @@ export const OtpStyles = StyleSheet.create({
   errorContainer: {
     width: "100%",
     display: "flex",
-    justifyContent: "flex-start",
+    justifyContent: "center",
     alignItems: "flex-start",
     marginVertical: 20,
-    gap: 12,
+    gap: 10,
   },
   errorPinCodeContainer: {
-    width: 50,
+    width: 55,
     height: 90,
     borderWidth: 1,
     borderRadius: 10,
@@ -47,7 +47,7 @@ export const OtpStyles = StyleSheet.create({
   errorText: {
     color: "red",
     fontSize: 14,
-    marginTop: 8,
+    marginTop: 2,
     textAlign: "center",
   },
 });

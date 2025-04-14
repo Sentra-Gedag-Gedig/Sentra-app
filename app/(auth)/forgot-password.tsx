@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import React, { useState } from "react";
 import { router } from "expo-router";
-import CountryPicker from "@/features/auth/components/country-picker";
+import CountrySelect from "@/features/auth/components/country-select";
 
 export default function ForgotPassword() {
   const { width, height } = useWindowDimensions();
@@ -44,7 +44,7 @@ export default function ForgotPassword() {
           <View className="mx-auto flex w-full">
             <Text className="text-base">Nomor Telepon</Text>
             <View className="flex flex-row gap-x-2">
-              <CountryPicker onSelect={(code) => setDialCode(code)} />
+              <CountrySelect onSelect={(code) => setDialCode(code)} />
               <TextInput
                 placeholder="Mobile Number"
                 keyboardType="phone-pad"
@@ -70,6 +70,7 @@ export default function ForgotPassword() {
                 Kirim Kode
               </Text>
             </TouchableOpacity>
+
             <View className="flex flex-row justify-center mt-6">
               <Text className="text-[#6A6A6A]">Ingat Kata Sandi?</Text>
               <TouchableOpacity
@@ -80,6 +81,7 @@ export default function ForgotPassword() {
                 <Text className="text-[#3629B7] font-semibold">Log in</Text>
               </TouchableOpacity>
             </View>
+
           </View>
         </ScrollView>
       </View>

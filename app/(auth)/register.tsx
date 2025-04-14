@@ -4,19 +4,14 @@ import {
   View,
   Image,
   useWindowDimensions,
-  TextInput,
   ScrollView,
-  TouchableOpacity,
 } from "react-native";
-import React, { useState } from "react";
-import { router } from "expo-router";
-import CountryPicker from "@/features/auth/components/country-picker";
+import React from "react";
+
+import RegisterForm from "@/features/auth/components/forms/register-form";
 
 export default function Register() {
-  const { width, height } = useWindowDimensions();
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [checked, setChecked] = useState(false);
-  const [dialCode, setDialCode] = useState("");
+  const { height } = useWindowDimensions();
 
   return (
     <SafeAreaView className="bg-primary-600 flex-1 items-center justify-center w-full h-full">
@@ -45,70 +40,7 @@ export default function Register() {
               className="mt-2"
             />
           </View>
-          <View className="space-y-2 mx-auto">
-            <TextInput
-              placeholder="Your Name"
-              className="border border-[#CBCBCB] rounded-2xl mt-4 pl-5"
-            />
-            <View className="flex flex-row gap-x-2">
-              <CountryPicker onSelect={(code) => setDialCode(code)} />
-              <TextInput
-                placeholder="Mobile Number"
-                keyboardType="phone-pad"
-                value={phoneNumber}
-                onChangeText={setPhoneNumber}
-                className="border flex-1 border-[#CBCBCB] rounded-2xl mt-4 pl-5"
-              />
-            </View>
-            <TextInput
-              secureTextEntry={true}
-              placeholder="Password"
-              className="border border-[#CBCBCB] rounded-2xl mt-4 pl-5"
-            />
-            <View className="flex flex-row items-center mt-6 mx-auto">
-              <View className="flex flex-row flex-wrap items-center flex-1">
-                <TouchableOpacity
-                  className={`w-9 h-9 border border-[#CBCBCB] flex-shrink-0 rounded-md mr-2 justify-center items-center ${
-                    checked ? "border-primary-400 " : ""
-                  }`}
-                  onPress={() => setChecked(!checked)}
-                >
-                  {checked && (
-                    <Text className="text-white font-bold checked:text-primary-400">
-                      ✔
-                    </Text>
-                  )}
-                </TouchableOpacity>
-
-                <Text className="flex-1 text-base text-[#6A6A6A]">
-                  By creating an account you agree to our{" "}
-                  <Text className="text-primary-400 font-bold border-b-2">
-                    Terms and Conditions
-                  </Text>
-                </Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              onPress={() =>
-                router.push({
-                  pathname: "/(auth)/verification-register",
-                  params: { phone: phoneNumber, dialCode: dialCode },
-                })
-              }
-              className="bg-primary-400 py-3 rounded-2xl mt-8"
-            >
-              <Text className="text-white text-center font-bold text-lg">
-                Sign up
-              </Text>
-            </TouchableOpacity>
-
-            <View className="flex flex-row justify-center mt-8">
-              <Text className="text-[#6A6A6A]">Sudah punya akun? </Text>
-              <TouchableOpacity onPress={() => router.push("/login")}>
-                <Text className="text-primary-400 font-semibold">Log In</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+          <RegisterForm />
         </ScrollView>
       </View>
     </SafeAreaView>

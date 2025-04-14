@@ -8,27 +8,20 @@ import {
 import React, { useEffect, useState } from "react";
 import { OtpInput } from "react-native-otp-entry";
 import { OtpStyles } from "@/features/verification/styles/otp.styles";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { formatTime } from "@/features/verification/utils/otp-format-time";
+import { useUser } from "@/context/user-context";
+import { usePhoneVerification } from "@/features/verification/hooks/use-verification";
 
 const Verification = () => {
   const router = useRouter();
-  const { phone, dialCode } = useLocalSearchParams();
-  const [otp, setOtp] = useState("");
+  const [code, setCode] = useState("");
   const [isError, setIsError] = useState(false);
   const [timer, setTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
+  const { mutate: verification } = usePhoneVerification();
 
-  const handleVerify = () => {
-    if (otp !== "12345") {
-      setIsError(true);
-    } else {
-      setIsError(false);
-      router.push({
-        pathname: "/(auth)/pin",
-      });
-    }
-  };
+  const { user, setUser } = useUser();
 
   useEffect(() => {
     if (timer > 0) {
@@ -39,12 +32,29 @@ const Verification = () => {
     }
   }, [timer]);
 
-  const handleResend = () => {
+  const handleResend = async () => {
+    await verification({
+      phone_number: user?.phone_number,
+    });
+    console.log("Resend OTP to:", user?.phone_number);
     if (canResend) {
       setCanResend(false);
       setTimer(30);
     }
   };
+
+  useEffect(() => {
+    if (code.length === 5) {
+      setUser({
+        ...user,
+        code: code,
+      });
+      console.log("User code:", code);
+      router.push("/(auth)/pin");
+    }
+  }, [code]);
+
+  const onSubmit = async () => {};
 
   return (
     <SafeAreaView className="bg-primary-600 flex-1 items-center justify-center w-full h-full">
@@ -60,14 +70,14 @@ const Verification = () => {
             </Text>
             <Text className="text-sm">
               Kami telah mengirimkan chat whatsapp dengan kode aktivasi kepada
-              nomor anda {dialCode} {phone}
+              nomor anda +{user?.phone_number}
             </Text>
           </View>
 
           <OtpInput
             focusColor="black"
             numberOfDigits={5}
-            onTextChange={setOtp}
+            onTextChange={setCode}
             theme={{
               containerStyle: isError
                 ? OtpStyles.errorContainer
@@ -111,7 +121,7 @@ const Verification = () => {
 
           <TouchableOpacity
             className="bg-primary-400 items-center py-4 px-4 rounded-2xl mt-8 mx-2"
-            onPress={handleVerify}
+            onPress={onSubmit}
           >
             <Text className="text-white font-bold text-lg">Verifikasi OTP</Text>
           </TouchableOpacity>

@@ -7,19 +7,20 @@ import {
   TouchableOpacity,
   TextInput,
 } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
-type Props = {};
+import { useUser } from "@/context/user-context";
 
-const ConfirmKTP = (props: Props) => {
-  const { photoUri, photoBase64 } = useLocalSearchParams();
-  const imageUri = Array.isArray(photoUri) ? photoUri[0] : photoUri;
+const ConfirmKTP = () => {
+  const params = useLocalSearchParams();
+  const { user, setUser } = useUser();
+
   return (
     <SafeAreaView className="bg-primary-600 flex-1 items-center justify-center w-full h-full">
       <View className="bg-white border rounded-t-3xl rounded-lg w-full h-full mt-6">
         <ScrollView
           className="p-6 flex-grow"
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 150 }}
         >
           <View className="flex flex-col items-start justify-start w-full gap-y-2">
             <Text className="font-bold text-primary-400 text-2xl">
@@ -29,13 +30,18 @@ const ConfirmKTP = (props: Props) => {
               Pastiin foto e-KTP kamu udah jelas dan NIK, nama lengkap, serta
               tanggal lahir kamu sudah sesuai
             </Text>
-          </View>
+        </View>
           <View className="flex items-center justify-center">
-            {imageUri && (
+            {user?.ktp_photo ? (
               <Image
-                source={{ uri: imageUri }}
-                className="w-64 h-40 rounded-lg mt-2"
+                source={{ uri: user.ktp_photo }}
+                style={{ width: "100%", height: 200, borderColor: "#000", }}
+                resizeMode="cover"
               />
+            ) : (
+              <Text className="text-lg text-red-500">
+                Foto tidak ditemukan!
+              </Text>
             )}
           </View>
           <View className="flex w-full">
@@ -44,6 +50,8 @@ const ConfirmKTP = (props: Props) => {
                 <Text className="font-bold text-xl">NIK</Text>
                 <TextInput
                   secureTextEntry={true}
+                  value=""
+                  editable={false}
                   className="border border-[#CBCBCB] rounded-[10px] p-4"
                 />
               </View>
@@ -53,6 +61,8 @@ const ConfirmKTP = (props: Props) => {
                 </Text>
                 <TextInput
                   secureTextEntry={true}
+                  value=""
+                  editable={false}
                   className="border border-[#CBCBCB] rounded-[10px] p-4"
                 />
               </View>
@@ -60,6 +70,8 @@ const ConfirmKTP = (props: Props) => {
                 <Text className="font-bold text-lg">Tempat/Tgl Lahir</Text>
                 <TextInput
                   secureTextEntry={true}
+                  value=""
+                  editable={false}
                   className="border border-[#CBCBCB] rounded-[10px] p-4"
                 />
               </View>
@@ -73,8 +85,8 @@ const ConfirmKTP = (props: Props) => {
               }}
               className="bg-primary-400 py-4 rounded-2xl mt-8"
             >
-              <Text className="text-white text-center font-bold text-lg">
-                Kirim Kode
+              <Text className="text-white text-center font-bold text-2xl">
+                Lanjut
               </Text>
             </TouchableOpacity>
           </View>

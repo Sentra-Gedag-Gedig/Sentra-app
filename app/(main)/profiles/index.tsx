@@ -1,0 +1,91 @@
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+} from "react-native";
+import { Stack, useRouter } from "expo-router";
+import { Ionicons, AntDesign, Feather } from "@expo/vector-icons";
+import ProfileItem from "@/features/profiles/components/profiles-item";
+import LogoutModal from "@/features/profiles/components/logout-modal";
+
+export default function Profile() {
+  const router = useRouter();
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const handleLogout = () => {
+    console.log("User logged out");
+    setModalVisible(false);
+    router.replace("/(auth)/login"); 
+  };
+
+  return (
+    <SafeAreaView className="flex-1 bg-primary-400">
+      <View className="flex-row justify-between items-center px-4 pt-10 pb-12">
+        <TouchableOpacity className="bg-white p-2 rounded-full">
+          <Ionicons name="arrow-back" size={24} color="#000080" />
+        </TouchableOpacity>
+        <Text className="text-white text-xl font-bold">Profil</Text>
+        <TouchableOpacity className="bg-white p-2 rounded-full">
+          <Ionicons name="notifications-outline" size={24} color="#000080" />
+        </TouchableOpacity>
+      </View>
+
+      <View className="flex-1 relative min-h-screen">
+        <View className="bg-white rounded-t-3xl absolute bottom-0 left-0 right-0 h-full">
+          <View className="items-center pt-16 mb-4">
+            <Text className="text-blue-900 text-xl font-bold">Richard</Text>
+            <Text className="text-black">
+              <Text className="font-bold">ID: </Text>
+              25030024
+            </Text>
+          </View>
+
+          <ScrollView className="px-4 flex-1">
+            <ProfileItem
+              icon={<AntDesign name="user" size={24} color="white" />}
+              title="Edit Profile"
+              onPress={() => router.push("/(main)/profiles/edit-profile")}
+            />
+            <ProfileItem
+              icon={<Ionicons name="shield" size={24} color="white" />}
+              title="Security"
+            />
+            <ProfileItem
+              icon={<Ionicons name="settings-sharp" size={24} color="white" />}
+              title="Setting"
+            />
+            <ProfileItem
+              icon={<Ionicons name="finger-print" size={24} color="white" />}
+              title="Autentikasi Sidik Jari"
+            />
+            <ProfileItem
+              icon={<Feather name="log-out" size={24} color="white" />}
+              title="Logout"
+              onPress={() => setModalVisible(true)}
+            />
+          </ScrollView>
+        </View>
+
+        <View className="absolute left-0 right-0 -top-10 items-center">
+          <View className="bg-white rounded-full">
+            <Image
+              source={{ uri: "https://i.pravatar.cc/150?img=11" }}
+              className="w-24 h-24 rounded-full"
+            />
+          </View>
+        </View>
+      </View>
+
+      <LogoutModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onConfirm={handleLogout}
+      />
+    </SafeAreaView>
+  );
+}
