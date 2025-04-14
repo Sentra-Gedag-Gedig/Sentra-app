@@ -9,6 +9,10 @@ Sentra adalah solusi finansial komprehensif yang dirancang khusus untuk pengguna
 - Jason Surya Wijaya (jasonsurya17@student.ub.ac.id)
 - Kadek Nandana Tyo Nayotama (nandanatyon@student.ub.ac.id)
 
+Links
+
+You can access APK File https://drive.google.com/drive/u/0/my-drive
+
 ## 🔍 Ringkasan
 
 Sentra bertujuan untuk menjembatani kesenjangan dalam layanan keuangan bagi individu tunanetra melalui aplikasi mobile inklusif yang menawarkan:
