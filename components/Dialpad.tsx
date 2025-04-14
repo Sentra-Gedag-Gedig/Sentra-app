@@ -4,7 +4,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 type Props = {
   handlePress: (value: string | number) => void;
-  steps: number;
+  steps?: number;
 };
 
 const dialPad = [
@@ -35,12 +35,12 @@ const Dialpad = ({ steps, handlePress }: Props) => {
           <TouchableOpacity
             className="p-4"
             onPress={() => handlePress("fingerprint")}
-            disabled={steps > 0}
+            disabled
           >
-            <MaterialIcons className=""
+            <MaterialIcons 
               name="fingerprint"
               size={32}
-              color={steps > 0 ? "white" : "black"}
+              color={"white"}
             />
           </TouchableOpacity>
 

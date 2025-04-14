@@ -4,7 +4,6 @@ module.exports = {
     "./app/**/*.{js,jsx,ts,tsx}",
     "./components/**/*.{js,jsx,ts,tsx}",
     "./features/**/*.{js,jsx,ts,tsx}",
-    "./shared/**/*.{js,jsx,ts,tsx}",
   ],
   presets: [require("nativewind/preset")],
   theme: {
@@ -28,7 +27,7 @@ module.exports = {
         primary: {
           100: "#e6e6f2",
           200: "#d9d9ec",
-          300: "#bob1d7",
+          300: "#b0b1d7",
           400: "#00027d",
           500: "#000271",
           600: "#000264",

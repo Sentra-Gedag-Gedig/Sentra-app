@@ -1,8 +1,25 @@
-const { withNativeWind } = require('nativewind/metro');
-const {
-  getSentryExpoConfig
-} = require("@sentry/react-native/metro");
+const { withNativeWind } = require("nativewind/metro");
+const { getDefaultConfig } = require("expo/metro-config");
 
-const config = getSentryExpoConfig(__dirname, { isCSSEnabled: true })
+const config = getDefaultConfig(__dirname, {
+  isCSSEnabled: true,
+});
 
-module.exports = withNativeWind(config, { input: './global.css' })
+config.resetCache = false;
+config.resolver.sourceExts = [
+  "jsx",
+  "js",
+  "ts",
+  "tsx",
+  "json",
+  "css",
+  "cjs",
+  "mjs",
+];
+
+config.transformer.assetPlugins = ["expo-asset/tools/hashAssetFiles"];
+
+module.exports = withNativeWind(config, {
+  input: "./global.css",
+  projectRoot: __dirname,
+});

@@ -9,24 +9,23 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 export default function home() {
   const router = useRouter();
   return (
     <LinearGradient
-      colors={["#B0B1D7", "#00027D"]}
+      colors={["#000000", "#00027D"]}
       style={styles.container}
-      start={{ x: -0.9, y: -1.1 }}
+      start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
     >
       <SafeAreaView className="flex items-center justify-center ">
         <View className="flex items-center justify-center">
-          <View className="items-center justify-center">
-            <Image
-              source={require("../assets/images/sentra-logo.png")}
-              resizeMode="contain"
-            />
-          </View>
+          <Image
+            source={require("../assets/images/sentra-logo.png")}
+            resizeMode="cover"
+          />
           <Text className="text-white text-center font-bold text-5xl">
             Sentra
           </Text>
@@ -40,21 +39,26 @@ export default function home() {
             </Text>
           </View>
           <TouchableOpacity
-            className="bg-white px-6 py-3 rounded-full mt-8"
+            className="bg-white px-6 py-3 rounded-full mt-8 w-full"
             onPress={() => {
               router.push("/register");
             }}
           >
             <View className="flex flex-row items-center justify-center gap-x-2">
-              <Image source={require("../assets/images/gmail.png")} />
+              <View className="rounded-full border-gray-200/50 border p-2 w-10 h-10 flex items-center justify-center">
+                <FontAwesome name="phone" size={20} color="#00027d" />
+              </View>
               <Text className="text-lg font-rubik-medium text-black-300 ml-2 text-[#676767]">
                 Sign Up with No HP
               </Text>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity className="bg-white px-6 py-3 rounded-full mt-4">
+          <TouchableOpacity className="bg-white px-6 py-3 rounded-full mt-4 w-full">
             <View className="flex flex-row items-center justify-center gap-x-2">
-              <Image source={require("../assets/images/gmail.png")} />
+              <Image
+                source={require("../assets/images/gmail.png")}
+                style={{ width: 30, height: 30, resizeMode: "contain" }}
+              />
               <Text className="text-lg font-rubik-medium text-black-300 ml-2 text-[#676767]">
                 Sign Up with Google
               </Text>
