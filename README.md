@@ -11,7 +11,7 @@ Sentra adalah solusi finansial komprehensif yang dirancang khusus untuk pengguna
 
 Links
 
-You can access APK File https://drive.google.com/drive/u/0/my-drive
+You can access APK File https://drive.google.com/drive/folders/1NbqkTsop4mLgLQsKRzSUJv_DlWQ8HX6a
 
 ## 🔍 Ringkasan
 
