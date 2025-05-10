@@ -13,11 +13,11 @@ export async function authenticateWithBiometric(): Promise<boolean> {
 }
 
 export const getBiometricCredentials = async () => {
-  const phone_number = await AsyncStorage.getItem("phone_number");
+  const userId = await AsyncStorage.getItem("user_id"); 
   const password = await AsyncStorage.getItem("password");
 
-  if (phone_number && password) {
-    return { phone_number, password };
+  if (userId && password) {
+    return { ID: userId, plain_text: password }; 
   }
 
   return null;
@@ -25,7 +25,7 @@ export const getBiometricCredentials = async () => {
 
 export const setBiometricCredentials = async (
   phone_number: string,
-  password: string
+  password: string,
 ) => {
   await AsyncStorage.setItem("phone_number", phone_number);
   await AsyncStorage.setItem("password", password);

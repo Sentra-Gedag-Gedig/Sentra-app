@@ -5,15 +5,10 @@ import {
   authenticateWithBiometric,
   getBiometricCredentials,
 } from "../actions/biometric";
-import { LoginRequest } from "../types/auth";
 import { getAccessToken, isTokenValid, setAuthSession } from "@/lib/session";
 import { apiClient } from "@/lib/api/api-client";
 
 export const useBiometric = () => {
-  const [state, setState] = useState<LoginRequest>({
-    phone_number: "",
-    password: "",
-  });
   const router = useRouter();
 
   const handleBiometricLogin = async () => {
@@ -42,6 +37,7 @@ export const useBiometric = () => {
       }>("/api/v1/auth/login-touch-id", "POST", {
         body: JSON.stringify(credentials),
       });
+
       const accessToken = response.accessToken;
       const expiresInHour = response.expiresInHour;
 
@@ -51,9 +47,5 @@ export const useBiometric = () => {
       alert("Biometric login failed");
     }
   };
-
-  return {
-    formLogin: state,
-    handleBiometricLogin,
-  };
+  return { handleBiometricLogin };
 };

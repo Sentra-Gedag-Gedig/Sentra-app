@@ -9,15 +9,12 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useUser } from "@/features/auth/hooks/use-user";
 
 const ShowQR = () => {
   const router = useRouter();
   const accountNumber = "0869913361910";
-
-  const handleBack = () => {
-    router.back();
-  };
-
+  const { data } = useUser();
   const handleSoundPress = () => {
     console.log("Playing sound guidance");
   };
@@ -48,7 +45,9 @@ const ShowQR = () => {
       </View>
 
       <View className="p-6">
-        <Text className="text-sm text-gray-500 font-bold mb-4">Sumber Dana</Text>
+        <Text className="text-sm text-gray-500 font-bold mb-4">
+          Sumber Dana
+        </Text>
 
         <TouchableOpacity
           onPress={() => {
@@ -60,10 +59,16 @@ const ShowQR = () => {
             <Text className="text-black font-base text-lg">
               Tabungan Sentra
             </Text>
-            <Text className="text-black font-bold text-base mt-1">{accountNumber}</Text>
+            <Text className="text-black font-bold text-base mt-1">
+              {data.phone_number}
+            </Text>
           </View>
           <View className="bg-primary-400 w-16 items-center justify-center">
-            <Image className="w-12 h-14" resizeMode="contain" source={require("@/assets/images/sentra-logo.png")}/>
+            <Image
+              className="w-12 h-14"
+              resizeMode="contain"
+              source={require("@/assets/images/sentra-logo.png")}
+            />
           </View>
         </TouchableOpacity>
       </View>

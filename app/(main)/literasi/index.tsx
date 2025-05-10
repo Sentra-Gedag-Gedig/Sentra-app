@@ -15,6 +15,7 @@ import HighlightNewsCard from "@/features/literasi/components/highlight-news-car
 import { categories, newsList } from "@/features/literasi/data/data";
 import { useLiterasi } from "@/features/literasi/hooks/use-literasi";
 import { literasiActions } from "@/features/literasi/actions/literasi";
+import { useLiterasiQuery } from "@/features/literasi/hooks/use-literasi-query";
 
 const Literasi = () => {
   const {
@@ -30,6 +31,7 @@ const Literasi = () => {
   } = useLiterasi(newsList);
 
   const { handleNewsPress } = literasiActions();
+  // const { queryLiterasi } = useLiterasiQuery();
 
   return (
     <SafeAreaView className="flex-1 bg-primary-400">

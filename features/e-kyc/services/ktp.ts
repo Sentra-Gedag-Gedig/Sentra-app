@@ -1,28 +1,13 @@
-export async function KTP(body: { uri: string }): Promise<any> {
-  const uriSegments = body.uri.split("/");
-  const fileName = uriSegments[uriSegments.length - 1];
-  const fileType = fileName.split(".").pop();
-
-  const formData = new FormData();
-  formData.append("image", {
-    uri: body.uri,
-    name: fileName.trim(), 
-    type: `image/${fileType}`,
-  } as any);
-
-  console.log("File name:", fileName);
-
+export async function KTP({ photo }: { photo: any }): Promise<any> {
   const res = await fetch(
     `${process.env.EXPO_PUBLIC_API_URL}/api/v1/ktp/extract`,
     {
       method: "POST",
-      body: formData,
-      headers: {
-        "Content-Type": "multipart/form-data", 
-      },
+      body: photo,
     }
   );
-
+  console.log("Response status:", res.status);
+  console.log("Response headers:", res.headers.get("content-type"));
   const text = await res.text();
   console.log("Response text:", text);
 

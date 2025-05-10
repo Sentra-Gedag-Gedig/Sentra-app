@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
-import React, { memo, useCallback, useMemo, useState } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   Modal,
@@ -19,6 +19,8 @@ import {
   incomeCategories,
 } from "@/features/home/utils/data";
 import Dialpad from "./dialpad-sentra-manager";
+import { useTransaction } from "../hooks/use-transaction";
+import { useDialpad } from "../context/transaction-context";
 
 const TABS = [
   {
@@ -44,10 +46,21 @@ export default function FilterModal({
   visible: boolean;
   toggle: () => void;
 }) {
-  const [selected, setSelected] = useState("Pengeluaran");
+  const [selected, setSelected] = useState<string>("Pengeluaran");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [buttonWidth, setButtonWidth] = useState(0);
-  const translateX = useSharedValue(0);
+  const [buttonWidth, setButtonWidth] = useState<number>(0);
+  const translateX = useSharedValue<number>(0);
+
+  const { nominal, description, audio, selectedDate, resetDialpad } =
+    useDialpad();
+
+  const { mutationCreate } = useTransaction();
+
+  useEffect(() => {
+    if (!visible) {
+      resetDialpad();
+    }
+  }, [visible]);
 
   const handleTabPress = useCallback(
     (index: number, type: string) => {
@@ -65,6 +78,28 @@ export default function FilterModal({
     () => (selected === "Pengeluaran" ? expenseCategories : incomeCategories),
     [selected]
   );
+
+  const formData = new FormData();
+  formData.append("audio", {
+    uri: audio,
+    name: "audio.m4a",
+    type: "audio/m4a",
+  } as any);
+  formData.append("title", description);
+  formData.append("description", description);
+  formData.append("nominal", nominal.toString());
+  const type = selected === "Pengeluaran" ? "expense" : "income";
+  formData.append("type", type);
+  if (selectedCategory) {
+    formData.append("category", selectedCategory);
+  }
+
+  const onSubmit = () => {
+    if (selectedCategory) {
+      mutationCreate.mutate(formData);
+      toggle();
+    }
+  };
 
   return (
     <Modal
@@ -109,7 +144,7 @@ export default function FilterModal({
             })}
           </View>
 
-          <TouchableOpacity onPress={toggle}>
+          <TouchableOpacity onPress={onSubmit}>
             <MaterialCommunityIcons name="check" size={24} color="#00027d" />
           </TouchableOpacity>
         </View>
@@ -131,8 +166,8 @@ export default function FilterModal({
             <CategoryItem
               title={item.title}
               icon={item.icon}
-              selected={selectedCategory === item.title}
-              onPress={() => setSelectedCategory(item.title)}
+              selected={selectedCategory === item.value}
+              onPress={() => setSelectedCategory(item.value)}
             />
           )}
         />

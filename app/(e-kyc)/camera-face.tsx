@@ -9,16 +9,16 @@ import {
   Image,
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Speech from "expo-speech";
 import { useRouter } from "expo-router";
+import Svg, { Circle, Defs, Mask, Rect } from "react-native-svg";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 const CIRCLE_SIZE = screenWidth * 0.75;
 
-const WEBSOCKET_URL = "wss://3.107.213.82"
+const WEBSOCKET_URL = process.env.EXPO_PUBLIC_API_WEBSOCKET;
 
-const FaceRegistrationCamera = () => {
+const CameraFace = () => {
   const [permission, requestPermission] = useCameraPermissions();
   const [wsStatus, setWsStatus] = useState("Disconnected");
   const [directionText, setDirectionText] = useState("");
@@ -31,6 +31,10 @@ const FaceRegistrationCamera = () => {
   console.log("WebSocket URL:", WEBSOCKET_URL);
 
   useEffect(() => {
+    if (!WEBSOCKET_URL) {
+      console.error("WebSocket URL is not defined in environment variables");
+      return;
+    }
     ws.current = new WebSocket(WEBSOCKET_URL);
     ws.current.onopen = () => {
       console.log("WebSocket connected");
@@ -127,6 +131,42 @@ const FaceRegistrationCamera = () => {
     }
   };
 
+  const OverlayMask = () => {
+    const cx = screenWidth / 2;
+    const cy = screenHeight / 2;
+
+    return (
+      <Svg
+        height={screenHeight}
+        width={screenWidth}
+        style={{ position: "absolute", top: -50, left: 0 }}
+      >
+        <Defs>
+          <Mask id="mask" x="0" y="0" width="100%" height="100%">
+            <Rect width="100%" height="100%" fill="white" />
+            <Circle cx={cx} cy={cy} r={CIRCLE_SIZE / 2} fill="black" />
+          </Mask>
+        </Defs>
+
+        <Rect
+          width="100%"
+          height="100%"
+          fill="rgba(0,0,0,0.5)"
+          mask="url(#mask)"
+          fillRule="evenodd"
+        />
+        <Circle
+          cx={cx}
+          cy={cy}
+          r={CIRCLE_SIZE / 2}
+          stroke="white"
+          strokeWidth={4}
+          fill="transparent"
+        />
+      </Svg>
+    );
+  };
+
   const renderCameraContent = () => {
     return (
       <CameraView ref={cameraRef} style={styles.camera} facing="front">
@@ -135,11 +175,7 @@ const FaceRegistrationCamera = () => {
             Arahkan wajah anda ke lingkaran sesuai petunjuk dari server!
           </Text>
         </View>
-
-        <View style={styles.circleContainer}>
-          <View style={styles.circle} />
-        </View>
-
+        <OverlayMask />
         <View style={styles.directionContainer}>
           <Text style={styles.directionText}>{directionText}</Text>
           {wsStatus !== "Connected" && (
@@ -166,16 +202,7 @@ const FaceRegistrationCamera = () => {
     );
   }
 
-  return (
-    <View style={styles.container}>
-      {renderCameraContent()}
-      {capturedImage && (
-        <View style={styles.previewContainer}>
-          <Image source={{ uri: capturedImage }} style={styles.previewImage} />
-        </View>
-      )}
-    </View>
-  );
+  return <View style={styles.container}>{renderCameraContent()}</View>;
 };
 
 const styles = StyleSheet.create({
@@ -187,10 +214,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   instructionContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     paddingVertical: 16,
     alignItems: "center",
-    backgroundColor: "#000264",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 5, 
   },
   instructionText: {
     color: "white",
@@ -198,18 +229,33 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
+  overlay: {
+    position: "absolute",
+    top: -50,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    alignItems: "center",
+  },
   circleContainer: {
-    flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-  circle: {
+  circleWithOverlay: {
     width: CIRCLE_SIZE,
     height: CIRCLE_SIZE,
     borderRadius: CIRCLE_SIZE / 2,
-    borderWidth: 2,
-    borderColor: "rgba(255, 255, 255, 0.7)",
+    borderWidth: 4,
+    borderColor: "rgba(255,255,255,0.6)",
+    overflow: "hidden", // Penting agar innerOverlay tidak keluar dari lingkaran
     backgroundColor: "transparent",
+  },
+  innerOverlay: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "transparent", // Overlay di dalam lingkaran
   },
   directionContainer: {
     paddingVertical: 20,
@@ -249,13 +295,11 @@ const styles = StyleSheet.create({
   },
   previewContainer: {
     position: "absolute",
-    top: 20,
+    top: 10,
     right: 20,
     width: 100,
     height: 150,
     borderWidth: 1,
-    borderColor: "#fff",
-    backgroundColor: "#000",
   },
   previewImage: {
     width: "100%",
@@ -263,4 +307,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FaceRegistrationCamera;
+export default CameraFace;

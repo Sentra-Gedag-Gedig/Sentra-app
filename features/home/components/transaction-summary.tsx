@@ -1,7 +1,14 @@
+import { formatRupiah } from "@/lib/format-rupiah";
 import { Feather } from "@expo/vector-icons";
 import { Text, View } from "react-native";
 
-export function TransactionSummary() {
+export function TransactionSummary({
+  totalIncome,
+  totalExpense,
+}: {
+  totalIncome: number;
+  totalExpense: number;
+}) {
   return (
     <>
       <View className="flex items-center">
@@ -11,7 +18,9 @@ export function TransactionSummary() {
           </View>
           <Text className="text-white">Total Pemasukan</Text>
         </View>
-        <Text className="text-[#00FF2F] text-2xl font-bold">RP3.000.000</Text>
+        <Text className="text-[#00FF2F] text-2xl font-bold">
+          {formatRupiah(totalIncome)}
+        </Text>
       </View>
 
       <View className="h-14 w-px bg-white mx-4" />
@@ -23,8 +32,11 @@ export function TransactionSummary() {
           </View>
           <Text className="text-white">Total Pengeluaran</Text>
         </View>
-        <Text className="text-[#FF0000] text-2xl font-bold">-RP250.000</Text>
+        <Text className="text-[#FF0000] text-2xl font-bold">
+          -{formatRupiah(totalExpense)}
+        </Text>
       </View>
     </>
   );
 }
+

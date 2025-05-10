@@ -39,7 +39,7 @@ export default function QRLayout() {
           ),
           headerLeft: () => (
             <TouchableOpacity
-              onPress={() => router.replace("/(main)/home")}
+              onPress={() => router.back()}
               style={{ paddingLeft: 12 }}
               hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
             >

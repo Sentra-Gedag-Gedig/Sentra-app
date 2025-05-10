@@ -1,51 +1,89 @@
-import React, { useRef, useState } from "react";
-import { View, Text, TouchableOpacity, Image, Button } from "react-native";
-import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
-import { useRouter } from "expo-router";
+import React, { Ref, useEffect, useRef, useState } from "react";
+import { View, Text, TouchableOpacity } from "react-native";
+import { CameraView, CameraType } from "expo-camera";
 import { useUser } from "@/context/user-context";
-import * as ImageManipulator from "expo-image-manipulator";
 import { useKTP } from "@/features/e-kyc/hooks/use-ktp";
+import CameraPermission from "@/components/Permission";
+import * as Speech from "expo-speech";
 
 const CameraKTP = () => {
   const [facing, setFacing] = useState<CameraType>("back");
-  const [permission, requestPermission] = useCameraPermissions();
   const ref = useRef<CameraView>(null);
-  const router = useRouter();
   const { user, setUser } = useUser();
-  const { mutate: KTP } = useKTP();
+  const { mutate: KTP, isPending } = useKTP();
 
-  if (!permission) return <View />;
-  if (!permission.granted) {
-    return (
-      <View className="flex-1 justify-center items-center">
-        <Text className="text-center pb-2 text-lg">
-          We need your permission to show the camera
-        </Text>
-        <TouchableOpacity
-          onPress={requestPermission}
-          className="bg-blue-500 px-4 py-2 rounded-lg"
-        >
-          <Text className="text-white font-bold">Grant Permission</Text>
-        </TouchableOpacity>
-      </View>
+  const socketRef = useRef<WebSocket | null>(null);
+  const [message, setMessage] = useState("");
+  const [connected, setConnected] = useState(false);
+  const [webSocket, setWebSocket] = useState<WebSocket | null>(null);
+
+  useEffect(() => {
+    const ws = new WebSocket(
+      `ws://bf58-180-248-23-91.ngrok-free.app/api/v1/ktp/ws`
     );
-  }
+
+    ws.onopen = () => {
+      console.log("Connected to WebSocket server");
+      setConnected(true);
+    };
+
+    ws.onmessage = (event) => {
+      console.log("Message from server:", event.data);
+      setMessage(event.data);
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    ws.onclose = () => {
+      console.log("Disconnected from WebSocket server");
+      setConnected(false);
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
+
+  const handleFrame = async (frame: any) => {
+    if (webSocket && webSocket.readyState === WebSocket.OPEN) {
+      webSocket.send(JSON.stringify(frame)); 
+    }
+  };
+
+  CameraPermission();
 
   const takePicture = async () => {
-    const photo = await ref.current?.takePictureAsync({ skipProcessing: true });
-    if (photo?.uri) {
-      setUser({
-        ...user,
-        ktp_photo: photo.uri,
+    try {
+      const photo = await ref.current?.takePictureAsync({
+        quality: 1,
+        base64: false,
+        skipProcessing: true,
+        exif: false,
       });
-    }
-    console.log(photo);
-    await KTP({ uri: photo?.uri });
+      if (photo?.uri) {
+        setUser({
+          ...user,
+          ktp_photo: photo.uri,
+        });
+      }
 
-    console.log("KTP", photo?.uri);
-    router.push({
-      pathname: "/(e-kyc)/confirm-ktp",
-    });
+      const formData = new FormData();
+      formData.append("image", {
+        uri: photo?.uri,
+        name: "ktp.jpg",
+        type: "image/jpeg",
+      } as any);
+
+      await KTP({ photo: formData });
+      console.log(photo);
+      console.log("KTP", photo?.uri);
+    } catch (error) {
+      console.error("Error taking picture:", error);
+      if (socketRef.current?.readyState === WebSocket.OPEN) {
+      }
+    }
   };
 
   return (
@@ -70,10 +108,12 @@ const CameraKTP = () => {
         </View>
         <TouchableOpacity
           onPress={takePicture}
-          className="absolute bg-primary-400 left-10 bottom-20 w-5/6 items-center py-4 px-4 rounded-2xl"
+          disabled={isPending}
+          className={`absolute left-10 bottom-20 w-5/6 items-center py-4 px-4 rounded-2xl 
+          ${isPending ? "bg-gray-400 opacity-70" : "bg-primary-400"}`}
         >
           <Text className="text-white font-bold text-2xl text-center">
-            Ambil Foto
+            {isPending ? "Memproses..." : "Ambil Foto"}
           </Text>
         </TouchableOpacity>
       </CameraView>

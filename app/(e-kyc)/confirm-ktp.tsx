@@ -30,12 +30,12 @@ const ConfirmKTP = () => {
               Pastiin foto e-KTP kamu udah jelas dan NIK, nama lengkap, serta
               tanggal lahir kamu sudah sesuai
             </Text>
-        </View>
-          <View className="flex items-center justify-center">
+          </View>
+          <View className="flex items-center justify-center mt-2">
             {user?.ktp_photo ? (
               <Image
                 source={{ uri: user.ktp_photo }}
-                style={{ width: "100%", height: 200, borderColor: "#000", }}
+                style={{ width: "100%", height: 200, borderColor: "#000" }}
                 resizeMode="cover"
               />
             ) : (
@@ -44,13 +44,12 @@ const ConfirmKTP = () => {
               </Text>
             )}
           </View>
-          <View className="flex w-full">
+          <View className="flex w-full mt-2">
             <View className="gap-y-2">
               <View className="gap-y-1">
                 <Text className="font-bold text-xl">NIK</Text>
                 <TextInput
-                  secureTextEntry={true}
-                  value=""
+                  value={user?.ktp_data?.nik}
                   editable={false}
                   className="border border-[#CBCBCB] rounded-[10px] p-4"
                 />
@@ -60,8 +59,7 @@ const ConfirmKTP = () => {
                   Nama lengkap sesuai e-KTP
                 </Text>
                 <TextInput
-                  secureTextEntry={true}
-                  value=""
+                  value={user?.ktp_data?.nama}
                   editable={false}
                   className="border border-[#CBCBCB] rounded-[10px] p-4"
                 />
@@ -69,8 +67,11 @@ const ConfirmKTP = () => {
               <View className="gap-y-1">
                 <Text className="font-bold text-lg">Tempat/Tgl Lahir</Text>
                 <TextInput
-                  secureTextEntry={true}
-                  value=""
+                  value={
+                    user?.ktp_data?.tempat_lahir +
+                    ", " +
+                    user?.ktp_data?.tanggal_lahir
+                  }
                   editable={false}
                   className="border border-[#CBCBCB] rounded-[10px] p-4"
                 />

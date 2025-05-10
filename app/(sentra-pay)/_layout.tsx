@@ -13,7 +13,11 @@ export default function EKYCLayout() {
     >
       <Stack.Screen
         name="sentra-pay"
-        options={{ headerShown: true, title: "Sentra Pay" }}
+        options={{ headerShown: false, title: "Sentra Pay" }}
+      />
+      <Stack.Screen
+        name="notification"
+        options={{ headerShown: true, title: "Notifikasi" }}
       />
     </Stack>
   );
