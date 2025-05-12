@@ -8,7 +8,7 @@ buildscript {
         targetSdkVersion = Integer.parseInt(findProperty('android.targetSdkVersion') ?: '34')
         kotlinVersion = findProperty('android.kotlinVersion') ?: '1.9.25'
 
-        ndkVersion = "29.0.13113456"
+        ndkVersion = "27.2.12479018"
     }
     repositories {
         google()
@@ -20,7 +20,7 @@ buildscript {
         classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
         classpath 'net.java.dev.jna:jna-platform:5.13.0'
     }
-    
+
 }
 
 subprojects {
