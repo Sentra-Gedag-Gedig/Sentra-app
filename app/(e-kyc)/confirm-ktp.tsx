@@ -12,7 +12,6 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useUser } from "@/context/user-context";
 
 const ConfirmKTP = () => {
-  const params = useLocalSearchParams();
   const { user, setUser } = useUser();
 
   return (

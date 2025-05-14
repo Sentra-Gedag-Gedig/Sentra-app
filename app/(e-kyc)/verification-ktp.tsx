@@ -6,13 +6,63 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import { CreditCard, Lightbulb } from "lucide-react-native";
 import { router } from "expo-router";
+import * as Linking from "expo-linking";
+import { useUser } from "@/context/user-context";
 
 type Props = {};
 
 const VerificationKTP = (props: Props) => {
+  const { user, setUser } = useUser();
+  useEffect(() => {
+    const handleDeepLink = (event: { url: string }) => {
+      const { url } = event;
+      const parsed = Linking.parse(url);
+      const status = parsed.queryParams?.status;
+
+      const rawNama = parsed.queryParams?.nama;
+      const rawNik = parsed.queryParams?.nik;
+      const rawTanggalLahir = parsed.queryParams?.tanggal_lahir;
+      const rawTempatLahir = parsed.queryParams?.tempat_lahir;
+      const rawFotoKTP = parsed.queryParams?.foto_ktp;
+
+      if (status === "verified") {
+        const nama = Array.isArray(rawNama) ? rawNama[0] : rawNama || "";
+        const nik = Array.isArray(rawNik) ? rawNik[0] : rawNik || "";
+        const tanggalLahir = Array.isArray(rawTanggalLahir)
+          ? rawTanggalLahir[0]
+          : rawTanggalLahir || "";
+        const tempatLahir = Array.isArray(rawTempatLahir)
+          ? rawTempatLahir[0]
+          : rawTempatLahir || "";
+        const fotoKTP = Array.isArray(rawFotoKTP)
+          ? rawFotoKTP[0]
+          : rawFotoKTP || "";
+
+        setUser({
+          ...user,
+          ktp_data: {
+            nama,
+            nik,
+            tempat_lahir: tempatLahir,
+            tanggal_lahir: tanggalLahir,
+          },
+          ktp_photo: decodeURIComponent(fotoKTP),
+        });
+        router.push("/(e-kyc)/confirm-ktp");
+      }
+    };
+
+    const subscription = Linking.addEventListener("url", handleDeepLink);
+    Linking.getInitialURL().then((url) => {
+      if (url) handleDeepLink({ url });
+    });
+
+    return () => subscription.remove();
+  }, []);
+
   return (
     <SafeAreaView className="bg-primary-600 flex-1 items-center justify-center w-full h-full">
       <View className="bg-white border-2 rounded-t-3xl rounded-lg w-full h-full mt-6 space-y-4">
@@ -24,7 +74,9 @@ const VerificationKTP = (props: Props) => {
             <Text className="font-bold text-primary-400 text-2xl flex-1">
               Scan E-KTP Kamu
             </Text>
-            <TouchableOpacity onPress={() => router.push("/(e-kyc)/verification-face")}>
+            <TouchableOpacity
+              onPress={() => router.push("/(e-kyc)/verification-face")}
+            >
               <Text className="text-primary-400 text-2xl font-bold">{` SKIP >`}</Text>
             </TouchableOpacity>
           </View>
@@ -59,7 +111,12 @@ const VerificationKTP = (props: Props) => {
           <View className="flex flex-col mt-12 gap-y-4">
             <TouchableOpacity
               onPress={() => {
-                router.push("/camera-ktp");
+                const returnApp = Linking.createURL("status", {
+                  queryParams: { status: "verified" },
+                });
+
+                const webUrl = `https://sentra-web-pi.vercel.app/ktp?returnApp=${encodeURIComponent(returnApp)}`;
+                Linking.openURL(webUrl);
               }}
               className="bg-primary-400 items-center py-4 px-4 rounded-3xl"
             >
@@ -67,6 +124,7 @@ const VerificationKTP = (props: Props) => {
                 Lanjut
               </Text>
             </TouchableOpacity>
+
             <TouchableOpacity
               className="bg-primary-400 items-center py-4 px-4 rounded-3xl"
               onPress={() => {
