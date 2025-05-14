@@ -1,3 +1,4 @@
+import { useUser } from "@/features/auth/hooks/use-user";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -11,7 +12,7 @@ import {
 const EditPhone = () => {
   const [newPhone, setNewPhone] = useState("");
   const router = useRouter();
-
+  const { data: user, isLoading } = useUser();
   const handleSubmit = () => {
     if (!newPhone) return;
     router.push({
@@ -19,6 +20,12 @@ const EditPhone = () => {
       params: { phone: newPhone },
     });
   };
+  const fullPhone = user?.phone_number || "";
+  const phonePrefix = fullPhone.startsWith("62") ? "62" : fullPhone.slice(0, 2);
+  const phoneNumber = fullPhone.startsWith("62")
+    ? fullPhone.slice(2)
+    : fullPhone.slice(phonePrefix.length);
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <View className="p-6 flex-1 gap-y-4">
@@ -28,16 +35,17 @@ const EditPhone = () => {
           </Text>
           <View className="flex-row items-center bg-[#E8EAF6] rounded-xl overflow-hidden">
             <View className="bg-[#B0B1D7] px-4 py-2 justify-center items-center">
-              <Text className="text-black text-base font-medium">+62</Text>
+              <Text className="text-black text-base font-medium">{`+${phonePrefix}`}</Text>
             </View>
             <TextInput
               className="flex-1 px-4 py-2 text-base text-black"
               keyboardType="number-pad"
-              value="8123456789"
+              value={phoneNumber}
               editable={false}
             />
           </View>
         </View>
+
         <View>
           <Text className="text-sm font-semibold text-black mb-1">
             Nomor HP baru

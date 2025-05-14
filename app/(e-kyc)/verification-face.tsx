@@ -6,30 +6,67 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
-import React from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { router } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import * as Linking from "expo-linking";
+import { ActivityIndicator } from "react-native";
 
 type Props = {};
 
 const VerificationFace = (props: Props) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleDeepLink = useCallback((event: { url: string }) => {
+    const { url } = event;
+    const parsed = Linking.parse(url);
+    const status = parsed.queryParams?.status;
+
+    if (status === "verified") {
+      router.push("/(main)/home");
+    } else {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const subscription = Linking.addEventListener("url", handleDeepLink);
+    Linking.getInitialURL().then((url) => {
+      if (url) handleDeepLink({ url });
+    });
+    return () => subscription.remove();
+  }, [handleDeepLink]);
+
+  const startFaceVerification = () => {
+    setIsLoading(true);
+
+    const returnApp = Linking.createURL("status", {
+      queryParams: { status: "verified" },
+    });
+    const webUrl = `https://sentra-web-pi.vercel.app/face?returnApp=${encodeURIComponent(
+      returnApp
+    )}`;
+    Linking.openURL(webUrl);
+  };
+
+  const skipVerification = () => {
+    router.replace("/(main)/home");
+  };
+
   return (
     <SafeAreaView className="bg-primary-600 flex-1 items-center justify-center w-full h-full">
       <View className="bg-white border-2 rounded-t-3xl rounded-lg w-full h-full mt-6 space-y-4">
         <ScrollView
           className="p-6 flex-grow flex-col"
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
-        >
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}>
           <View className="flex flex-row items-center justify-between w-full">
             <Text className="font-bold text-primary-400 text-2xl flex-1">
               Verifikasi wajah
             </Text>
-            <TouchableOpacity>
-              <TouchableOpacity onPress={() => router.replace("/(main)/home")}>
-                <Text className="text-primary-400 text-2xl font-bold">{` SKIP >`}</Text>
-              </TouchableOpacity>
+            <TouchableOpacity onPress={skipVerification}>
+              <Text className="text-primary-400 text-2xl font-bold">{` SKIP >`}</Text>
             </TouchableOpacity>
           </View>
           <View className="mt-2">
@@ -72,21 +109,30 @@ const VerificationFace = (props: Props) => {
 
           <View className="flex flex-col mt-8 gap-y-4">
             <TouchableOpacity
-              onPress={() => {
-                router.push("/camera-face");
-              }}
-              className="bg-primary-400 items-center py-4 px-4 rounded-3xl"
-            >
+              onPress={startFaceVerification}
+              className="bg-primary-400 items-center py-4 px-4 rounded-3xl">
               <Text className="text-white font-bold text-2xl text-center">
                 Lanjut
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity className="bg-primary-400 items-center py-4 px-4 rounded-3xl">
+
+            <TouchableOpacity
+              onPress={skipVerification}
+              className="bg-primary-400 items-center py-4 px-4 rounded-3xl">
               <Text className="text-white font-bold text-2xl text-center">
                 Skip
               </Text>
             </TouchableOpacity>
           </View>
+
+          {isLoading && (
+            <View className="absolute left-0 right-0 top-1/3 items-center justify-center z-50">
+              <ActivityIndicator size="large" color="#00027d" />
+              <Text className="text-primary-400 mt-2 text-base font-medium">
+                Memuat...
+              </Text>
+            </View>
+          )}
         </ScrollView>
       </View>
     </SafeAreaView>

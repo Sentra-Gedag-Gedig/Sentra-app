@@ -1,9 +1,18 @@
 import React, { useState, useCallback, memo, useEffect } from "react";
-import { View, Text, TouchableOpacity, Image, Platform } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  Platform,
+  TextInput,
+  Modal,
+} from "react-native";
 import { Ionicons, FontAwesome5, FontAwesome } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
+import { useDialpad } from "../context/transaction-context";
 
 const dialPad = [
   ["clipboard", "Hari ini", "trash-can-outline", "check"],
@@ -17,17 +26,32 @@ const isNumberOrSymbol = (item: string) =>
   ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "."].includes(item);
 
 const Dialpad = () => {
-  const [inputValue, setInputValue] = useState("");
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showNotebook, setShowNotebook] = useState(false);
+  const {
+    setDescription,
+    setAudio,
+    setNominal,
+    setSelectedDate,
+    selectedDate,
+    nominal,
+    description,
+    audio,
+  } = useDialpad();
 
   const handlePress = useCallback((item: string) => {
     if (isNumberOrSymbol(item)) {
-      setInputValue((prev) => prev + item);
+      setNominal((prev) => prev + item);
     } else if (item === "close") {
-      setInputValue((prev) => prev.slice(0, -1));
+      setNominal((prev) => prev.slice(0, -1));
     } else if (item === "Hari ini") {
       setShowDatePicker(true);
+    } else if (item === "trash-can-outline") {
+      setNominal("");
+    } else if (item === "check") {
+      console.log("Value saved:", nominal);
+    } else if (item === "clipboard") {
+      setShowNotebook(true);
     }
   }, []);
 
@@ -40,7 +64,13 @@ const Dialpad = () => {
 
   return (
     <View className="bg-primary-400 rounded-t-2xl w-full p-4">
-      <MicInputRow inputValue={inputValue} />
+      <MicInputRow
+        recordingUri={audio}
+        setRecordingUri={setAudio}
+        note={description}
+        inputValue={nominal}
+        setInputValue={setNominal}
+      />
 
       {dialPad.map((row, index) => (
         <DialPadRow
@@ -58,6 +88,43 @@ const Dialpad = () => {
           display={Platform.OS === "ios" ? "spinner" : "default"}
           onChange={onChangeDate}
         />
+      )}
+      {showNotebook && (
+        <Modal visible={showNotebook} animationType="fade" transparent>
+          <View className="flex-1 justify-center items-center bg-black/50">
+            <View className="bg-white w-4/5 rounded-2xl p-6 items-center justify-center">
+              <TextInput
+                value={description}
+                onChangeText={setDescription}
+                multiline={true}
+                textAlignVertical="top"
+                placeholder="Tulis catatan di sini..."
+                placeholderTextColor="#888"
+                className="bg-gray-100 text-gray-800 rounded-xl p-3 h-40 w-full mb-6"
+              />
+
+              <View className="flex-row justify-between w-full px-6">
+                <TouchableOpacity
+                  onPress={() => {
+                    setDescription("");
+                    setShowNotebook(false);
+                  }}
+                >
+                  <Text className="text-red-600 text-lg font-bold">Hapus</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowNotebook(false);
+                  }}
+                >
+                  <Text className="text-green-600 text-lg font-bold">
+                    Simpan
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       )}
     </View>
   );
@@ -160,16 +227,29 @@ const DialPadRowComponent = ({
 );
 const DialPadRow = memo(DialPadRowComponent);
 
-const MicInputRow = ({ inputValue }: { inputValue: string }) => {
+const MicInputRow = ({
+  inputValue,
+  setInputValue,
+  recordingUri,
+  setRecordingUri,
+  note,
+}: {
+  note: string;
+  inputValue: string;
+  recordingUri: string | null;
+  setRecordingUri: React.Dispatch<React.SetStateAction<string | null>>;
+
+  setInputValue: React.Dispatch<React.SetStateAction<string>>;
+}) => {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [recordingUri, setRecordingUri] = useState<string | null>(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [interval, setIntervalId] = useState<NodeJS.Timeout | null>(null);
   const [showRecorderUI, setShowRecorderUI] = useState(false);
+  const [showNotebook, setShowNotebook] = useState(false);
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isSent, setIsSent] = useState(false);
 
   useEffect(() => {
@@ -188,6 +268,8 @@ const MicInputRow = ({ inputValue }: { inputValue: string }) => {
 
   async function startRecording() {
     try {
+      setShowNotebook(false);
+
       const permissionResponse = await Audio.requestPermissionsAsync();
       if (permissionResponse.status !== "granted") {
         alert("Permission to access microphone is required!");
@@ -233,6 +315,7 @@ const MicInputRow = ({ inputValue }: { inputValue: string }) => {
       const uri = recording.getURI();
       setRecordingUri(uri);
       setRecording(null);
+      setIsRecording(false);
 
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
@@ -327,28 +410,47 @@ const MicInputRow = ({ inputValue }: { inputValue: string }) => {
     setShowRecorderUI(false);
   }
 
-  function sendRecording() {
+  async function sendRecording() {
     if (recording) {
-      stopRecording();
+      await stopRecording();
     }
 
     console.log("Recording URI:", recordingUri);
 
+    if (recordingUri) {
+      try {
+        const { sound: newSound } = await Audio.Sound.createAsync({
+          uri: recordingUri,
+        });
+
+        setSound(newSound);
+        setIsSent(true);
+      } catch (error) {
+        console.error("Failed to create sound from recording:", error);
+      }
+    }
+
     setIsRecording(false);
     setShowRecorderUI(false);
-    if (recordingUri) {
-      setIsSent(true);
-    }
-    // setRecordingUri(null);
   }
+
   function handleIconPress() {
-    if (recordingUri && showRecorderUI) {
-      // Hapus file rekaman
-      discardRecording();
+    if (recordingUri && !showRecorderUI) {
+      playSound();
     } else {
-      // Mulai/stop recording
       handleMicPress();
     }
+  }
+
+  function toggleNotebook() {
+    if (showRecorderUI) {
+      setShowRecorderUI(false);
+      if (recording) {
+        stopRecording();
+      }
+    }
+
+    setShowNotebook(!showNotebook);
   }
 
   function formatDuration(seconds: number) {
@@ -371,23 +473,36 @@ const MicInputRow = ({ inputValue }: { inputValue: string }) => {
               <Ionicons name="mic" size={24} color="#00027d" />
             )}
           </TouchableOpacity>
-          <View className="flex-[3] mx-1 bg-white p-3 rounded-xl flex-row items-center justify-between">
-            <Text className="flex-1 text-gray-500 text-sm font-bold">
-              Catatan
-            </Text>
-            <View className="flex-row items-center ml-2">
-              <Text className="text-gray-500 text-xs mr-1">
-                dalam Rupiah(RP)
+          <TouchableOpacity
+            className="flex-[3] mx-1 bg-white p-3 rounded-xl"
+            onPress={toggleNotebook}
+          >
+            <View className="flex-row items-center justify-between">
+              <Text className="flex-1 text-gray-500 text-sm font-bold">
+                {note
+                  ? `${note.slice(0, 10)}${note.length > 10 ? "..." : ""}`
+                  : "Catatan"}
               </Text>
+              <View className="flex-row items-center ml-2">
+                {inputValue ? (
+                  <Text className="text-black font-bold text-lg mr-1">
+                    {inputValue}
+                  </Text>
+                ) : (
+                  <Text className="text-gray-500 text-sm mr-1">
+                    dalam Rupiah(RP)
+                  </Text>
+                )}
+              </View>
             </View>
-          </View>
+          </TouchableOpacity>
         </>
       ) : (
         <VoiceRecorderUI
           isPaused={isPaused}
           isPlaying={isPlaying}
           duration={recordingDuration}
-          isRecording={!!recording}
+          isRecording={isRecording}
           onPlay={playSound}
           onTrash={discardRecording}
           onSend={sendRecording}

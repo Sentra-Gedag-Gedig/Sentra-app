@@ -4,13 +4,13 @@ interface User {
   name?: string;
   phone_number?: string;
   code?: string;
-  pin? : string;
+  pin?: string;
   ktp_photo?: string;
   ktp_data?: {
-    originalWidth? : number;
-    originalHeight? : number;
-    width?: number;
-    height?: number; 
+    nik: string;
+    nama: string;
+    tempat_lahir: string;
+    tanggal_lahir: string;
   };
 }
 
@@ -21,7 +21,9 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
 
   return (

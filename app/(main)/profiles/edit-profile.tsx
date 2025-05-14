@@ -5,15 +5,13 @@ import {
   Image,
   TouchableOpacity,
   SafeAreaView,
-  ScrollView,
-  Dimensions,
-  StatusBar,
   TextInput,
 } from "react-native";
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import PhotoModal from "@/features/profiles/components/photo-modal";
 import ConfirmPhoneModal from "@/features/profiles/components/confirm-phone-modal";
-
+import { useUpdateProfilePhoto, useUser } from "@/features/auth/hooks/use-user";
+import * as ImagePicker from "expo-image-picker";
 export const options = {
   tabBarStyle: { display: "none" },
 };
@@ -23,13 +21,68 @@ export default function ProfileEdit() {
   const [selectedStatus, setSelectedStatus] = useState("Tunanetra");
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const [image, setImage] = useState<string | null>(null);
+  const { data: user } = useUser();
+  const { mutateAsync: updatePhoto, isPending } = useUpdateProfilePhoto();
+
+  const pickImageFromCamera = async () => {
+    let result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [4, 4],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+      setShowPhotoModal(false);
+    }
+  };
+
+  const pickImageFromGallery = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [4, 4],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+      setShowPhotoModal(false);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!image) return;
+
+    const formData = new FormData();
+    formData.append("photo", {
+      uri: image,
+      name: "profile.jpg",
+      type: "image/jpeg",
+    } as any);
+
+    try {
+      await updatePhoto(formData);
+      setImage(null);
+      router.back();
+    } catch (error) {
+      console.error("Upload gagal:", error);
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-primary-400 w-full h-full">
       <View className="items-center justify-center mt-16">
         <TouchableOpacity>
           <Image
-            source={{ uri: "https://i.pravatar.cc/150?img=11" }}
+            source={{
+              uri:
+                image ||
+                user.profile_photo_url ||
+                "https://i.pravatar.cc/150?img=11",
+            }}
             className="w-24 h-24 rounded-full"
           />
         </TouchableOpacity>
@@ -47,7 +100,7 @@ export default function ProfileEdit() {
             <View className="bg-[#E6E6F2] rounded-xl px-4 py-3">
               <TextInput
                 className="text-gray-800"
-                value="Richard"
+                value={user.name}
                 editable={false}
               />
             </View>
@@ -58,7 +111,7 @@ export default function ProfileEdit() {
               <View className="flex-1">
                 <Text className="text-black font-normal">Nomor HP</Text>
                 <View className="rounded-xl py-2">
-                  <Text className="font-bold">Belum Diisi</Text>
+                  <Text className="font-bold">{user.phone_number}</Text>
                 </View>
               </View>
               <TouchableOpacity
@@ -76,9 +129,12 @@ export default function ProfileEdit() {
                   <Text className="font-bold">Richardcen05@Gmail.Com</Text>
                 </View>
               </View>
-              <TouchableOpacity className="ml-2 mt-6" onPress={() => {
-                router.push("/(main)/profiles/edit-email")
-              }}>
+              <TouchableOpacity
+                className="ml-2 mt-6"
+                onPress={() => {
+                  router.push("/(main)/profiles/edit-email");
+                }}
+              >
                 <Text className="text-primary-400 font-bold">Ubah</Text>
               </TouchableOpacity>
             </View>
@@ -115,29 +171,24 @@ export default function ProfileEdit() {
             <PhotoModal
               visible={showPhotoModal}
               onClose={() => setShowPhotoModal(false)}
-              onPickCamera={() => {
-                setShowPhotoModal(false);
-              }}
-              onPickGallery={() => {
-                setShowPhotoModal(false);
-              }}
+              onPickCamera={pickImageFromCamera}
+              onPickGallery={pickImageFromGallery}
             />
-
             <ConfirmPhoneModal
               visible={showPhoneModal}
               onClose={() => setShowPhoneModal(false)}
               onConfirm={() => {
-                router.push("/(main)/profiles/edit-phone")
+                router.push("/(main)/profiles/edit-phone");
                 setShowPhoneModal(false);
               }}
             />
-
             <TouchableOpacity
               className="bg-primary-400 rounded-xl py-4"
-              onPress={() => router.back()}
+              onPress={handleUpload}
+              disabled={isPending}
             >
               <Text className="text-white text-center font-bold text-lg">
-                Simpan
+                {isPending ? "Menyimpan..." : "Simpan"}
               </Text>
             </TouchableOpacity>
           </View>

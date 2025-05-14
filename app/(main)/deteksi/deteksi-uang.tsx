@@ -1,68 +1,105 @@
-import { useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { CameraView, useCameraPermissions, FlashMode } from "expo-camera";
-
+import { CameraView, CameraType } from "expo-camera";
 import SettingsModal from "@/features/deteksi-uang/components/settings-modal";
+import CameraPermission from "@/components/Permission";
+import { useDeteksi } from "@/features/deteksi-uang/hooks/use-deteksi";
+import {
+  DeteksiItem,
+  DeteksiResponse,
+} from "@/features/deteksi-uang/types/deteksi";
+import {
+  speakMessage,
+  speakDetectionResults,
+} from "@/features/deteksi-uang/utils/speech";
+import CameraActions from "@/features/deteksi-uang/components/camera-action";
 
 const DeteksiUang = () => {
-  const [permission, requestPermission] = useCameraPermissions();
-  const [detectedAmount, setDetectedAmount] = useState<string | null>("2000");
-  const [modalVisible, setModalVisible] = useState(false);
-  const [beepEnabled, setBeepEnabled] = useState(true);
-  const [flashEnabled, setFlashEnabled] = useState(true);
-  const [cameraType, setCameraType] = useState<"front" | "back">("back");
+  const [detectedAmount, setDetectedAmount] = useState<number | null>(null);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [beepEnabled, setBeepEnabled] = useState<boolean>(true);
+  const [flashEnabled, setFlashEnabled] = useState<boolean>(true);
+  const [facing, setFacing] = useState<CameraType>("back");
 
-  const handleClick = () => {
-    setModalVisible(true);
+  const cameraRef = useRef<CameraView>(null);
+
+  const handleDetectionResults = (res: DeteksiResponse) => {
+    if (res?.data?.total) {
+      const total = res.data.total;
+      const details = res.data.details;
+      setDetectedAmount(total);
+      speakDetectionResults(total, details);
+    } else {
+      setDetectedAmount(null);
+      if (beepEnabled) {
+        speakMessage("Uang tidak terdeteksi. Silakan coba lagi.");
+      }
+    }
   };
 
-  if (!permission) {
-    return <View />;
-  }
+  const { mutate: DeteksiPhoto, isPending } = useDeteksi(
+    handleDetectionResults
+  );
 
-  if (!permission?.granted) {
-    return (
-      <View className="flex-1 justify-center items-center p-4">
-        <Text className="text-center mb-4">
-          Kami membutuhkan izin Anda untuk mengakses kamera.
-        </Text>
-        <TouchableOpacity
-          className="bg-blue-600 px-6 py-3 rounded-lg"
-          onPress={requestPermission}
-        >
-          <Text className="text-white font-bold">Berikan Izin Kamera</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  CameraPermission();
+
+  const takePicture = async () => {
+    try {
+      const photo = await cameraRef.current?.takePictureAsync({
+        quality: 1,
+        base64: false,
+        exif: false,
+        skipProcessing: true,
+      });
+
+      if (!photo) {
+        console.error("Failed to take picture");
+        return;
+      }
+
+      console.log("Photo taken:", photo.uri);
+
+      const formData = new FormData();
+      formData.append("image", {
+        uri: photo.uri,
+        name: "money.jpg",
+        type: "image/jpeg",
+      } as any);
+
+      await DeteksiPhoto({ photo: formData });
+    } catch (error) {
+      console.error("Error taking picture:", error);
+    }
+  };
+
+  const toggleCameraType = () =>
+    setFacing(facing === "back" ? "front" : "back");
 
   return (
     <View className="flex-1 bg-black">
       <View className="flex-[4]">
         <CameraView
+          ref={cameraRef}
           style={{ flex: 1 }}
-          facing={cameraType}
+          facing={facing}
           flash={flashEnabled ? "on" : "off"}
         >
-          <View className="flex-1 justify-center items-center">
+          <View className="absolute top-1/2 left-0 right-0 z-50 items-center -translate-y-1/2">
             {detectedAmount && (
-              <View className="items-center">
-                <Text className="text-white text-6xl font-bold">
-                  {detectedAmount}
-                </Text>
-              </View>
+              <Text className="text-white text-6xl font-bold">
+                {detectedAmount}
+              </Text>
             )}
           </View>
         </CameraView>
       </View>
 
-      <View className="flex-[1] bg-white p-4">
-        <TouchableOpacity
-          className="bg-primary-400 p-4 w-full rounded-md self-center mb-4"
-          onPress={handleClick}
-        >
-          <Text className="text-white font-bold text-center">PENGATURAN</Text>
-        </TouchableOpacity>
+      <View className="flex-[1] bg-white pt-10">
+        <CameraActions
+          isPending={isPending}
+          onOpenSettings={() => setModalVisible(true)}
+          onTakePicture={takePicture}
+        />
       </View>
 
       <SettingsModal
@@ -72,10 +109,8 @@ const DeteksiUang = () => {
         setBeepEnabled={setBeepEnabled}
         flashEnabled={flashEnabled}
         setFlashEnabled={setFlashEnabled}
-        cameraType={cameraType}
-        toggleCameraType={() =>
-          setCameraType(cameraType === "back" ? "front" : "back")
-        }
+        cameraType={facing}
+        toggleCameraType={toggleCameraType}
       />
     </View>
   );

@@ -4,9 +4,8 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useBiometric } from "../hooks/use-biometric";
 
 export default function Biometric() {
-
   const { handleBiometricLogin } = useBiometric();
-  
+
   return (
     <View>
       <TouchableOpacity

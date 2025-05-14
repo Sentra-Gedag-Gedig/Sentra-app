@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "sentra",
     "jsEngine": "hermes",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": false,
@@ -18,7 +18,8 @@
       "infoPlist": {
         "NSCameraUsageDescription": "$(PRODUCT_NAME) needs access to your Camera.",
         "NSMicrophoneUsageDescription": "$(PRODUCT_NAME) needs access to your Microphone."
-      }
+      },
+      "bundleIdentifier": "com.anonymous.sentra"
     },
     "android": {
       "adaptiveIcon": {
@@ -27,7 +28,6 @@
       },
       "package": "com.anonymous.sentra",
       "permissions": [
-        "RECORD_AUDIO",
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.USE_BIOMETRIC",
@@ -85,6 +85,12 @@
           "microphonePermissionText": "$(PRODUCT_NAME) needs access to your Microphone."
         }
       ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends."
+        }
+      ],
       "expo-secure-store"
     ],
     "experiments": {
@@ -97,6 +103,7 @@
       "eas": {
         "projectId": "382afa54-8512-4cfd-9776-3b8b6062a072"
       }
-    }
+    },
+    "owner": "jasonsw"
   }
 }
