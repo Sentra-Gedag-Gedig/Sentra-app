@@ -12,6 +12,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as Linking from "expo-linking";
+import { ActivityIndicator } from "react-native";
 
 type Props = {};
 
@@ -123,6 +124,15 @@ const VerificationFace = (props: Props) => {
               </Text>
             </TouchableOpacity>
           </View>
+
+          {isLoading && (
+            <View className="absolute left-0 right-0 top-1/3 items-center justify-center z-50">
+              <ActivityIndicator size="large" color="#00027d" />
+              <Text className="text-primary-400 mt-2 text-base font-medium">
+                Memuat...
+              </Text>
+            </View>
+          )}
         </ScrollView>
       </View>
     </SafeAreaView>
