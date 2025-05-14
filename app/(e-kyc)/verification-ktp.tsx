@@ -7,7 +7,7 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { CreditCard, Lightbulb } from "lucide-react-native";
 import { router } from "expo-router";
 import * as Linking from "expo-linking";
@@ -19,8 +19,8 @@ const VerificationKTP = (props: Props) => {
   const { user, setUser } = useUser();
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    const handleDeepLink = (event: { url: string }) => {
+  const handleDeepLink = useCallback(
+    (event: { url: string }) => {
       const { url } = event;
       const parsed = Linking.parse(url);
       const status = parsed.queryParams?.status;
@@ -57,35 +57,50 @@ const VerificationKTP = (props: Props) => {
 
         router.push("/(e-kyc)/confirm-ktp");
       } else {
-        setIsLoading(false); // Stop loading jika gagal atau dibatalkan
+        setIsLoading(false);
       }
-    };
+    },
+    [user, setUser]
+  );
 
+  useEffect(() => {
     const subscription = Linking.addEventListener("url", handleDeepLink);
+
     Linking.getInitialURL().then((url) => {
       if (url) handleDeepLink({ url });
     });
 
     return () => subscription.remove();
-  }, []);
+  }, [handleDeepLink]);
+
+  const startKTPScan = () => {
+    setIsLoading(true);
+
+    const returnApp = Linking.createURL("status", {
+      queryParams: { status: "verified" },
+    });
+    const webUrl = `https://sentra-web-pi.vercel.app/ktp?returnApp=${encodeURIComponent(
+      returnApp
+    )}`;
+    Linking.openURL(webUrl);
+  };
+
+  const skipKTPScan = () => {
+    setIsLoading(false);
+    router.push("/(e-kyc)/verification-face");
+  };
 
   return (
     <SafeAreaView className="bg-primary-600 flex-1 items-center justify-center w-full h-full">
       <View className="bg-white border-2 rounded-t-3xl rounded-lg w-full h-full mt-6 space-y-4">
         <ScrollView
           className="p-6 flex-grow flex-col"
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
-        >
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}>
           <View className="flex flex-row items-center justify-between w-full">
             <Text className="font-bold text-primary-400 text-2xl flex-1">
               Scan E-KTP Kamu
             </Text>
-            <TouchableOpacity
-              onPress={() => {
-                setIsLoading(false);
-                router.push("/(e-kyc)/verification-face");
-              }}
-            >
+            <TouchableOpacity onPress={skipKTPScan}>
               <Text className="text-primary-400 text-2xl font-bold">{` SKIP >`}</Text>
             </TouchableOpacity>
           </View>
@@ -118,19 +133,8 @@ const VerificationKTP = (props: Props) => {
           </View>
           <View className="flex flex-col mt-12 gap-y-4">
             <TouchableOpacity
-              onPress={() => {
-                setIsLoading(true);
-
-                const returnApp = Linking.createURL("status", {
-                  queryParams: { status: "verified" },
-                });
-                const webUrl = `https://sentra-web-pi.vercel.app/ktp?returnApp=${encodeURIComponent(
-                  returnApp
-                )}`;
-                Linking.openURL(webUrl);
-              }}
-              className="bg-primary-400 items-center py-4 px-4 rounded-3xl"
-            >
+              onPress={startKTPScan}
+              className="bg-primary-400 items-center py-4 px-4 rounded-3xl">
               <Text className="text-white font-bold text-2xl text-center">
                 Lanjut
               </Text>
@@ -138,11 +142,7 @@ const VerificationKTP = (props: Props) => {
 
             <TouchableOpacity
               className="bg-primary-400 items-center py-4 px-4 rounded-3xl"
-              onPress={() => {
-                setIsLoading(false);
-                router.push("/(e-kyc)/verification-face");
-              }}
-            >
+              onPress={skipKTPScan}>
               <Text className="text-white font-bold text-2xl text-center">
                 Skip
               </Text>
